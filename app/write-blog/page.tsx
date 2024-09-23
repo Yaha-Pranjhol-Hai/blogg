@@ -20,10 +20,12 @@ export default function WriteBlogPage() {
     };
 
     useEffect(() => {
+        if (status === "loading") return; // Wait for the session status to resolve
         if (status === "unauthenticated") {
             router.push("/auth/signin");
         }
     }, [status, router]);
+    
 
     return (
         <div className="min-h-screen flex flex-col">
