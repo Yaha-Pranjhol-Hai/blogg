@@ -1,4 +1,5 @@
 "use client";
+
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -14,9 +15,34 @@ export default function WriteBlogPage() {
     const { data: session, status } = useSession();
     const router = useRouter();
 
-    const handleSubmit = (e: React.MouseEvent) => {
+    const handleSubmit = async (e: React.MouseEvent) => {
         e.preventDefault();
-        router.push('/');
+
+        if (!title || !content) {
+            alert("All fields are required.");
+            return;
+        }
+
+        try {
+            const response = await fetch("/api/write-blog", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ title, content }),
+            });
+
+            if (response.ok) {
+                await response.json(); // Assuming server returns JSON
+                router.push('/');
+            } else {
+                const error = await response.json();
+                alert(error.message);
+            }
+
+        } catch (error) {
+            alert("An error occurred. Please try again.");
+        }
     };
 
     useEffect(() => {
@@ -25,7 +51,6 @@ export default function WriteBlogPage() {
             router.push("/auth/signin");
         }
     }, [status, router]);
-    
 
     return (
         <div className="min-h-screen flex flex-col">
