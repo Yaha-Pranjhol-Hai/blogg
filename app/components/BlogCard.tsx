@@ -1,6 +1,6 @@
 import Link from "next/link";
 import React from "react";
-import BlogTypes from "@/types/BlogTypes";
+import BlogCardTypes from "@/types/BlogTypes";
 
 const truncateText = (text: string, limit: number) => {
   if (text.length > limit) {
@@ -9,7 +9,7 @@ const truncateText = (text: string, limit: number) => {
   return text;
 };
 
-const BlogCard: React.FC<BlogTypes> = ({ blog, mode }) => {
+const BlogCard: React.FC<BlogCardTypes> = ({ blog, mode }) => {
   return (
     <div className="flex flex-col space-y-2">
       {/* <img

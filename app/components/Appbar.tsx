@@ -31,6 +31,9 @@ export function Appbar({ isBlogPage }: { isBlogPage?: boolean }) {
                             <Link href="/write-blog" className={`text-gray-600 hover:text-gray-900 ${pathname === "/write-blog" ? "font-bold text-gray-800" : ""}`}>
                                 Write a Blog
                             </Link>
+                            <Link href="/my-blogs" className={`text-gray-600 hover:text-gray-900 ${pathname === "/my-blogs" ? "font-bold text-gray-800" : ""}`}>
+                                My Blogs
+                            </Link>
                             <Link href="/blogs" className={`text-gray-600 hover:text-gray-900 ${pathname === "/blogs" ? "font-bold text-gray-800" : ""}`}>
                                 All Blogs
                             </Link>
