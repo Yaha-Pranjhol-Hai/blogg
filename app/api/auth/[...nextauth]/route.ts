@@ -12,8 +12,9 @@ export const authOptions = {
             clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
         }),
     ],
-    secret: process.env.NEXTAUTH_SECRET, // Ensure this is set
+    secret: process.env.NEXTAUTH_SECRET,
     callbacks: {
+        //@ts-ignore
         async signIn({ user }) {
             const email = user.email;
 
@@ -36,13 +37,14 @@ export const authOptions = {
 
             return true;
         },
+        // @ts-ignore
         async session({ session }) {
             if (session.user) {
                 const userRecord = await prisma.user.findUnique({
                     where: { email: session.user.email as string },
                 });
                 if (userRecord) {
-                    session.user.id = userRecord.id.toString(); // Ensure ID is a string
+                    session.user.id = userRecord.id.toString(); 
                 }
             }
             return session;
