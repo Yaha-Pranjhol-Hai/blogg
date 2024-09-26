@@ -11,7 +11,7 @@ const truncateText = (text: string, limit: number) => {
 
 const BlogCard: React.FC<BlogCardTypes> = ({ blog, mode }) => {
   return (
-    <div className="flex flex-col space-y-2">
+    <div className="flex flex-col space-y-2 border-2 px-3 py-3">
       {/* <img
         alt="Post thumbnail"
         className="aspect-[4/3] overflow-hidden rounded-lg object-cover"

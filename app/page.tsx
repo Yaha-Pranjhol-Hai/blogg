@@ -39,7 +39,7 @@ export default async function Home() {
           </div>
         </div>
       </section>
-
+{/* 
 <section className="w-full py-12 md:py-24 lg:py-32 bg-gray-100">
   <div className="container mx-auto px-4 md:px-6">
     <h2 className="text-2xl font-bold tracking-tighter sm:text-3xl md:text-4xl mb-8 text-center">
@@ -51,7 +51,7 @@ export default async function Home() {
       ))}
     </div>
   </div>
-</section>
+</section> */}
 
       <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
         <p className="text-xs text-gray-500">© 2024 MiniBlog. All rights reserved.</p>

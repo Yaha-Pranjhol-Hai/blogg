@@ -21,10 +21,6 @@ export function Appbar({ isBlogPage }: { isBlogPage?: boolean }) {
                     <Link href="/" className={`text-gray-600 hover:text-gray-900 ${pathname === "/" ? "font-bold text-gray-800" : ""}`}>
                         Home
                     </Link>
-                    <Link href="/contact" className={`text-gray-600 hover:text-gray-900 ${pathname === "/contact" ? "font-bold text-gray-800" : ""}`}>
-                        Contact
-                    </Link>
-
                     {/* Conditional Blog Link based on user authentication */}
                     {session?.user ? (
                         <div className="flex space-x-6 items-center">
@@ -37,6 +33,9 @@ export function Appbar({ isBlogPage }: { isBlogPage?: boolean }) {
                             <Link href="/blogs" className={`text-gray-600 hover:text-gray-900 ${pathname === "/blogs" ? "font-bold text-gray-800" : ""}`}>
                                 All Blogs
                             </Link>
+                            <Link href="/contact" className={`text-gray-600 hover:text-gray-900 ${pathname === "/contact" ? "font-bold text-gray-800" : ""}`}>
+                        Contact
+                    </Link>
                             <Button onClick={() => signOut()}>Logout</Button>
                         </div>
                     ) : (
@@ -44,9 +43,13 @@ export function Appbar({ isBlogPage }: { isBlogPage?: boolean }) {
                             <Link href="/blogs" className={`text-gray-600 hover:text-gray-900 ${pathname === "/blogs" ? "font-bold text-gray-800" : ""}`}>
                                 All Blogs
                             </Link>
+                            <Link href="/contact" className={`text-gray-600 hover:text-gray-900 ${pathname === "/contact" ? "font-bold text-gray-800" : ""}`}>
+                        Contact
+                    </Link>
                             <Button onClick={() => signIn()}>SignIn</Button>
                         </div>
                     )}
+                    
                 </nav>
             </div>
         </header>

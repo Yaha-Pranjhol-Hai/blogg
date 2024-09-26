@@ -1,9 +1,9 @@
 export interface Blog {
-  id: string;
+  id: number;
   title: string;
-  excerpt: string;
+  excerpt?: string;
   content: string;
-  imageUrl?: string;
+  imageUrl?: string | null;
 }
 
 interface BlogCardProps {

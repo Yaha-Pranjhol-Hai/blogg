@@ -2,10 +2,10 @@
 
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
-import BlogCard from "../components/BlogCard";
-
+import { Appbar } from "../components/Appbar";
+import MyBlogCard from "../components/MyBlogsCard";
 interface Blog {
-  id: string;
+  id: number;
   title: string;
   excerpt: string;
   content: string;
@@ -24,7 +24,6 @@ const MyBlogs = () => {
           const response = await fetch("/api/my-blogs");
           const data = await response.json();
           // Optionally validate and log data
-          console.log("Blogs data: ", data);
           if (Array.isArray(data)) {
             setBlogs(data);
           } else {
@@ -49,14 +48,19 @@ const MyBlogs = () => {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-6">My Blogs</h2>
+        <Appbar/>
+      <h2 className="text-2xl text-center my-5 font-bold mb-6">My Blogs</h2>
       {blogs.length === 0 ? (
         <p>No blogs found.</p>
       ) : (
+        <div className="">
+            <div className="container mx-auto px-4 md:px-6">
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {blogs.map((blog) => (
-            <BlogCard key={blog.id} blog={blog} mode="short" />
+            <MyBlogCard key={blog.id} blog={blog} mode="short" />
           ))}
+        </div>
+        </div>
         </div>
       )}
     </div>

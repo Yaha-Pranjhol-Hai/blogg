@@ -1,4 +1,3 @@
-// app/api/blogs/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '../auth/[...nextauth]/route';
@@ -8,7 +7,6 @@ const prisma = new PrismaClient();
 
 export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
-console.log(session);
 
     if (!session || !session.user || !session.user.id) {
         return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
