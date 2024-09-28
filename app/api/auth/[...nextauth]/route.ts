@@ -1,11 +1,10 @@
-// app/api/auth/[...nextauth]/route.ts
-import NextAuth from "next-auth";
+import NextAuth, { NextAuthOptions, User, Session } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-const authOptions = {
+const authOptions: NextAuthOptions = {
     providers: [
         GoogleProvider({
             clientId: process.env.GOOGLE_CLIENT_ID ?? "",
@@ -14,8 +13,7 @@ const authOptions = {
     ],
     secret: process.env.NEXTAUTH_SECRET,
     callbacks: {
-        // @ts-expect-error: This is necessary because of I dont know.
-        async signIn({ user }) {
+        async signIn({ user }: { user: User }) {
             const email = user.email;
 
             if (!email) {
@@ -36,10 +34,8 @@ const authOptions = {
             }
 
             return true;
-        },
-        // @ts-expect-error: This is necessary because of I dont know.
-        
-        async session({ session }) {
+        },        
+        async session({ session }: { session: Session }) {
             if (session.user) {
                 const userRecord = await prisma.user.findUnique({
                     where: { email: session.user.email as string },
