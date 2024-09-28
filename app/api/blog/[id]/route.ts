@@ -1,55 +1,71 @@
 import { PrismaClient } from "@prisma/client";
-import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { getServerSession } from "next-auth/next";
 import { NextRequest, NextResponse } from "next/server";
-import { authOptions }  from "../../auth/authOptions";
-import { Blog } from "@/types/BlogTypes";
 
 const prisma = new PrismaClient();
 
-export async function GET(req: NextRequest, { params }: { params: { id: string}}) {
+export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const session = await getServerSession(authOptions);
 
+    // Check if the user is authenticated
     if (!session || !session.user || !session.user.id) {
-        return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
+
     const id = parseInt(params.id, 10);
     const blog = await prisma.post.findUnique({
       where: { id: id },
-    })
+    });
 
-    if(blog) {
-      return NextResponse.json(blog);
+    // If blog is not found, return a 404 error
+    if (!blog) {
+      return NextResponse.json({ message: "Blog not found" }, { status: 404 });
     }
-    else {
-      return NextResponse.json({message: 'Internal Server Error'});
-    }
+
+    return NextResponse.json(blog);
   } catch (error) {
     console.error("GET error:", error);
-    return NextResponse.json({ message:'Internal Server error'}, { status: 404});
+    return NextResponse.json({ message: "Internal Server Error for Get request" }, { status: 500 });
+  } finally {
+    await prisma.$disconnect(); // Ensure proper disconnection
   }
 }
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string}}) {
+export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const session = await getServerSession(authOptions);
 
+    // Check if the user is authenticated
     if (!session || !session.user || !session.user.id) {
-        return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
+
     const id = parseInt(params.id, 10);
     const { title, content, imageUrl } = await req.json();
-    const updatedBlog: Blog = await prisma.post.update({
+
+    // Validate input
+    if (!title || !content || !imageUrl) {
+      return NextResponse.json({ message: "Invalid input data" }, { status: 400 });
+    }
+
+    const updatedBlog = await prisma.post.update({
       where: {
         id: id,
       },
       data: {
-        title,content, imageUrl
-      }
-    })
+        title,
+        content,
+        imageUrl,
+      },
+    });
+
     return NextResponse.json(updatedBlog);
   } catch (error) {
-    console.error(" error:", error);
-    return NextResponse.json({ message: "Internal Server Error"}, { status: 404})
+    console.error("PUT error:", error);
+    return NextResponse.json({ message: "Internal Server Error for Post" }, { status: 500 });
+  } finally {
+    await prisma.$disconnect(); // Ensure proper disconnection
   }
 }
