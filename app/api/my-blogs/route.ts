@@ -1,19 +1,22 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../auth/[...nextauth]/route';
+import { authOptions } from '../auth/authOptions'; 
 import { PrismaClient } from '@prisma/client';
+import { NextRequest } from 'next/server'; 
 
 const prisma = new PrismaClient();
 
-export async function GET(req: NextRequest) {
+export const dynamic = 'force-dynamic';
+
+export async function GET(req: NextRequest) { 
     try {
-        const session = await getServerSession(authOptions);
+        const session = await getServerSession({ req, ...authOptions });
 
         if (!session || !session.user) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const authorId = parseInt(session?.user?.id || '', 10);
+        const authorId = parseInt(session.user.id, 10);
 
         const blogs = await prisma.post.findMany({
             where: {

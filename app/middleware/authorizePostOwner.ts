@@ -1,11 +1,14 @@
 import { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { getSession } from "next-auth/react";
+import { NextApiRequest } from "next";
 
 const prisma = new PrismaClient();
 
 // Middleware to check if the user is the post's owner.
-export async function authorizePostOwner(req: any, res: any, postId: number) {
+
+export async function authorizePostOwner(req: NextApiRequest, postId: number) {
+
   const session = await getSession({ req });
 
   if (!session || !session.user?.email) {

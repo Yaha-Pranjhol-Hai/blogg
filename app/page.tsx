@@ -1,18 +1,34 @@
+"use client";
+
 import Link from "next/link";
 import { Appbar } from "./components/Appbar";
-import BlogCard from "./components/BlogCard";
 import { Blog } from "@/types/BlogTypes";
+import { useEffect, useState } from "react";
+import BlogCard from "./components/BlogCard";
 
-async function fetchBlogs(): Promise<Blog[]> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/blogs`);
+async function fetchBlogs() {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/my-blogs`);
   if (!res.ok) {
     throw new Error("Failed to fetch blogs");
   }
   return res.json();
 }
 
-export default async function Home() {
-  const blogs = await fetchBlogs();
+export default function Home() {
+  const [blogs, setBlogs] = useState<Blog[]>([]);
+
+  useEffect(() => {
+    const loadBlogs = async () => {
+      try {
+        const blogsData = await fetchBlogs();
+        setBlogs(blogsData);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    loadBlogs();
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col">
       <Appbar />
@@ -39,19 +55,20 @@ export default async function Home() {
           </div>
         </div>
       </section>
-{/* 
-<section className="w-full py-12 md:py-24 lg:py-32 bg-gray-100">
-  <div className="container mx-auto px-4 md:px-6">
-    <h2 className="text-2xl font-bold tracking-tighter sm:text-3xl md:text-4xl mb-8 text-center">
-      Featured Posts
-    </h2>
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {blogs.map((blog) => (
-        <BlogCard key={blog.id} blog={blog} mode="short" />
-      ))}
-    </div>
-  </div>
-</section> */}
+      
+      {/* Featured Posts Section */}
+      <section className="w-full py-12 md:py-24 lg:py-32 bg-gray-100">
+        <div className="container mx-auto px-4 md:px-6">
+          <h2 className="text-2xl font-bold tracking-tighter sm:text-3xl md:text-4xl mb-8 text-center">
+            Featured Posts
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {blogs.map((blog) => (
+              <BlogCard key={blog.id} blog={blog} mode="short" />
+            ))}
+          </div>
+        </div>
+      </section>
 
       <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
         <p className="text-xs text-gray-500">© 2024 MiniBlog. All rights reserved.</p>

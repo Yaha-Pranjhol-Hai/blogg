@@ -41,6 +41,7 @@ export default function WriteBlogPage() {
             }
 
         } catch (error) {
+            console.error("POST error:", error);
             alert("An error occurred. Please try again.");
         }
     };

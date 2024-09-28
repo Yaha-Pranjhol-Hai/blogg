@@ -8,12 +8,13 @@ import { Appbar } from "../../../components/Appbar";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import BlogCardProps from "@/types/BlogTypes";
 
 const EditBlog = () => {
     const { id } = useParams(); // Get dynamic route parameter
     const router = useRouter();
     const { data: session } = useSession();
-    const [blog, setBlog] = useState<any>(null);
+    const [blog, setBlog] = useState<BlogCardProps | null>(null);
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [imageUrl, setImageUrl] = useState('');

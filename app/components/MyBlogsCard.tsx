@@ -7,14 +7,7 @@ import { Button } from "./ui/button";
 import { Edit, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-const truncateText = (text: string, limit: number) => {
-  // if (text.length > limit) {
-  //   return text.substring(0, limit) + "...";
-  // }
-  // return text;
-};
-
-const MyBlogCard: React.FC<BlogCardTypes> = ({ blog, mode }) => {
+const MyBlogCard: React.FC<BlogCardTypes> = ({ blog }) => {
     const router = useRouter();
 
     const handleEditClick = () => {

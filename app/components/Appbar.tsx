@@ -4,12 +4,12 @@ import Link from "next/link";
 import { Button } from "./ui/button";
 import { usePathname } from "next/navigation";
 
-export function Appbar({ isBlogPage }: { isBlogPage?: boolean }) {
+export function Appbar({}: { isBlogPage?: boolean }) {
     const { data: session } = useSession();
     const pathname = usePathname(); // Get the current path
 
     return (
-        <header className="bg-white shadow-sm border-b border-gray-200">
+        <header className="bg-white shadow-sm border-b border-gray-200" >
             <div className="max-w mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
                 {/* Static Logo */}
                 <Link href="/" className="text-2xl font-bold text-gray-900">

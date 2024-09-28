@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
-import { authOptions } from "../../auth/[...nextauth]/route";
+import { authOptions }  from "../../auth/authOptions";
 import { Blog } from "@/types/BlogTypes";
 
 const prisma = new PrismaClient();
@@ -25,6 +25,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string}}
       return NextResponse.json({message: 'Internal Server Error'});
     }
   } catch (error) {
+    console.error("GET error:", error);
     return NextResponse.json({ message:'Internal Server error'}, { status: 404});
   }
 }
@@ -48,6 +49,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string}}
     })
     return NextResponse.json(updatedBlog);
   } catch (error) {
+    console.error(" error:", error);
     return NextResponse.json({ message: "Internal Server Error"}, { status: 404})
   }
 }

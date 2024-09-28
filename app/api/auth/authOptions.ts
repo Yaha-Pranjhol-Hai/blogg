@@ -1,11 +1,9 @@
-// app/api/auth/[...nextauth]/route.ts
-import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-const authOptions = {
+export const authOptions = {
     providers: [
         GoogleProvider({
             clientId: process.env.GOOGLE_CLIENT_ID ?? "",
@@ -38,7 +36,6 @@ const authOptions = {
             return true;
         },
         // @ts-expect-error: This is necessary because of I dont know.
-        
         async session({ session }) {
             if (session.user) {
                 const userRecord = await prisma.user.findUnique({
@@ -52,9 +49,3 @@ const authOptions = {
         },
     },
 };
-
-// Create the NextAuth handler with the defined options
-const handler = NextAuth(authOptions);
-
-// Exporting the handler for API routes
-export { handler as GET, handler as POST };
