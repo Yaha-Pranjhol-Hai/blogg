@@ -1,4 +1,3 @@
-// lib/auth.ts
 import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { PrismaClient } from "@prisma/client";
@@ -18,16 +17,16 @@ export const authOptions: NextAuthOptions = {
     callbacks: {
         async signIn({ user }) {
             const email = user.email;
-    
+
             if (!email) {
                 return false;
             }
-    
+
             // Check if the user already exists
             const existingUser = await prisma.user.findUnique({
                 where: { email },
             });
-    
+
             // If the user does not exist, create them
             if (!existingUser) {
                 const newUser = await prisma.user.create({
@@ -36,13 +35,13 @@ export const authOptions: NextAuthOptions = {
                         name: user.name || null,
                     },
                 });
-    
+
                 // Create account for new user
                 await prisma.account.create({
                     data: {
                         userId: newUser.id, // Use the newly created user's ID
                         provider: "google",
-                        providerAccountId: user.id, // Google account ID
+                        providerAccountId: String(user.id), // Convert to string
                     },
                 });
             } else {
@@ -51,23 +50,23 @@ export const authOptions: NextAuthOptions = {
                     where: {
                         provider_providerAccountId: {
                             provider: "google",
-                            providerAccountId: user.id,
+                            providerAccountId: String(user.id), // Convert to string
                         },
                     },
                 });
-    
+
                 // If the account does not exist, create it
                 if (!existingAccount) {
                     await prisma.account.create({
                         data: {
                             userId: existingUser.id, // Use existing user's ID
                             provider: "google",
-                            providerAccountId: user.id, // Google account ID
+                            providerAccountId: String(user.id), // Convert to string
                         },
                     });
                 }
             }
-    
+
             return true;
         },
         async session({ session }) {
@@ -82,4 +81,4 @@ export const authOptions: NextAuthOptions = {
             return session;
         },
     }
-}    
+}
