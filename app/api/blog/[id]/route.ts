@@ -43,10 +43,10 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     }
 
     const id = parseInt(params.id, 10);
-    const { title, content, imageUrl } = await req.json();
+    const { title, content } = await req.json();
 
     // Validate input
-    if (!title || !content || !imageUrl) {
+    if (!title || !content ) {
       return NextResponse.json({ message: "Invalid input data" }, { status: 400 });
     }
 
@@ -57,7 +57,6 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       data: {
         title,
         content,
-        imageUrl,
       },
     });
 

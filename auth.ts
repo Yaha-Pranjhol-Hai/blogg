@@ -6,7 +6,7 @@ import { PrismaAdapter } from '@next-auth/prisma-adapter';
 const prisma = new PrismaClient();
 
 export const authOptions: NextAuthOptions = {
-    adapter: PrismaAdapter(prisma),
+    adapter: PrismaAdapter(prisma),    
     providers: [
         GoogleProvider({
             clientId: process.env.GOOGLE_CLIENT_ID ?? "",
@@ -55,6 +55,9 @@ export const authOptions: NextAuthOptions = {
                         },
                     },
                 });
+
+                console.log("Prismaa User creating...");
+                
 
                 // If the account does not exist, create it
                 if (!existingAccount) {
