@@ -14,6 +14,7 @@ export const authOptions: NextAuthOptions = {
         }),
     ],
     secret: process.env.NEXTAUTH_SECRET,
+    debug: true,
     callbacks: {
         async signIn({ user }) {
             const email = user.email;
