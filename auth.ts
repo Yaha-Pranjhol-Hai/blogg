@@ -14,7 +14,6 @@ export const authOptions: NextAuthOptions = {
         }),
     ],
     secret: process.env.NEXTAUTH_SECRET,
-    debug: true,
     callbacks: {
         async signIn({ user }) {
             const email = user.email;
@@ -54,10 +53,7 @@ export const authOptions: NextAuthOptions = {
                             providerAccountId: String(user.id), // Convert to string
                         },
                     },
-                });
-
-                console.log("Prismaa User creating...");
-                
+                });                
 
                 // If the account does not exist, create it
                 if (!existingAccount) {

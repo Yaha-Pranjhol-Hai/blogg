@@ -14,16 +14,13 @@ const MyBlogCard: React.FC<BlogCardTypes> = ({ blog }) => {
         router.push(`/blog/${blog.id}/edit`);
     }
 
+    const handleDeleteClick = () => {
+        router.push(`/blog/${blog.id}/delete`);
+    }
+
   return (
     <div className="flex flex-col space-y-2 border-2 px-3 py-3">
       <h3 className="text-xl font-bold">{blog.title}</h3>
-      {/* {mode === "short" ? (
-        <p className="text-gray-500">
-          {truncateText(blog.excerpt || blog.content, 100)}
-        </p>
-      ) : (
-        <p className="text-gray-500">{blog.content}</p>
-      )} */}
       <Link
         className="text-sm font-medium hover:underline underline-offset-4"
         href={`/blog/${blog.id}`}
@@ -33,7 +30,7 @@ const MyBlogCard: React.FC<BlogCardTypes> = ({ blog }) => {
       <div className="flex justify-end space-x-2">
       <Button variant="outline" onClick={handleEditClick}>
       <Edit className="w-4 h-4 mr-2" />Edit</Button>
-      <Button variant="destructive">
+      <Button variant="destructive" onClick={handleDeleteClick}>
       <Trash2 className="w-4 h-4 mr-2" />Delete</Button>
       </div>
     </div>

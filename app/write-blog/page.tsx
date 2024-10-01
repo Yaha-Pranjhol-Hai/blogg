@@ -12,6 +12,7 @@ import { Appbar } from "../components/Appbar";
 export default function WriteBlogPage() {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
+    const [ isLoading, setIsLoading ] = useState(false);
     const { data: session, status } = useSession();
     const router = useRouter();
 
@@ -22,6 +23,9 @@ export default function WriteBlogPage() {
             alert("All fields are required.");
             return;
         }
+
+        if(isLoading) return;
+        setIsLoading(true);
 
         try {
             const response = await fetch("/api/write-blog", {
@@ -44,10 +48,13 @@ export default function WriteBlogPage() {
             console.error("POST error:", error);
             alert("An error occurred. Please try again.");
         }
-    };
+        finally {
+            setIsLoading(false);
+        }    
+    }; 
 
     useEffect(() => {
-        if (status === "loading") return; // Wait for the session status to resolve
+        if (status === "loading") return;
         if (status === "unauthenticated") {
             router.push("/auth/signin");
         }
@@ -85,8 +92,8 @@ export default function WriteBlogPage() {
                             </div>
 
                             <div className="flex justify-end space-x-4">
-                                <Button type="button" onClick={handleSubmit}>
-                                    Publish
+                                <Button type="button" onClick={handleSubmit} disabled={isLoading}>
+                                    { isLoading ? "Publishing..." : "Publish"}
                                 </Button>
                             </div>
                         </form>
