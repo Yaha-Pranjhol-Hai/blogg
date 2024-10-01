@@ -12,10 +12,21 @@ model Post {
   title     String
   content   String
   imageUrl  String?
-  authorId  Int
+  authorId  Int     
+  upvotes   Upvote[]
   author    User     @relation(fields: [authorId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Upvote {
+  id        Int     @id @default(autoincrement())
+  postId    Int
+  userId    Int
+  post      Post    @relation(fields: [postId], references: [id])
+  user      User    @relation(fields: [userId], references: [id])
+
+  @@unique([postId, userId])  // Ensure a user can only upvote once per post
 }
 
 model User {
@@ -25,6 +36,7 @@ model User {
   posts     Post[]
   accounts  Account[]
   sessions  Session[]
+  upvotes   Upvote[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
