@@ -29,6 +29,11 @@ export default function Home() {
     loadBlogs();
   }, []);
 
+  const onUpvote = (blogId: number) => {
+    console.log("Upvoted blog with ID:", blogId);
+    // You can add further functionality here, like making an API call to update the upvote count
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Appbar />
@@ -64,7 +69,7 @@ export default function Home() {
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {blogs.map((blog) => (
-              <BlogCard key={blog.id} blog={blog} mode="short" />
+              <BlogCard key={blog.id} blog={blog} mode="short" onUpvote={onUpvote} />
             ))}
           </div>
         </div>

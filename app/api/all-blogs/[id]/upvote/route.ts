@@ -36,6 +36,7 @@ export async function POST(req: NextRequest, { params } : { params: { id: string
         return NextResponse.json({ message: "Blog Upvoted Successfully"});
         
     } catch (error) {
+        console.error(error);
         return NextResponse.json({ messaga: "Error while upvoting"}, { status: 500})
     }
 }
