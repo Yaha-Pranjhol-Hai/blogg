@@ -27,16 +27,20 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         });
 
         if (existingUpvote) {
-            return NextResponse.json({ message: "You have already upvoted this post" }, { status: 400 });
-        }
-
-        // Add upvote
-        await prisma.upvote.create({
-            data: {
-                post: { connect: { id: postId } }, 
-                user: { connect: { id: userId } }, 
-            },
-        });
+            await prisma.upvote.delete({
+                where: {
+                    postId_userId: { postId, userId}
+                }
+            })
+            return NextResponse.json({ message: "Upvote Removed" }, { status: 200 });
+        }else {
+            await prisma.upvote.create({
+                data: {
+                    post: { connect: { id: postId } }, 
+                    user: { connect: { id: userId } }, 
+                },
+            });
+        }        
 
         return NextResponse.json({ message: "Blog Upvoted Successfully" });
 

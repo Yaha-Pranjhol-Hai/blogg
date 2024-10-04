@@ -46,7 +46,7 @@ export default function ContactPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 md:py-12 lg:py-16 flex flex-col items-center">
-      <h1 className="text-3xl font-bold text-center mb-8">Contact Us</h1>
+      <h1 className="text-3xl font-bold text-center mb-8">Contact Me</h1>
       {successMessage && <p className="text-green-600 mb-4">{successMessage}</p>}
       <div className="flex flex-col md:flex-row gap-8 w-6/12">
         <Card className="flex-1">
