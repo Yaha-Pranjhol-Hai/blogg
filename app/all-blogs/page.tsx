@@ -2,19 +2,21 @@
 
 import useSWR from "swr";
 import { useState } from "react";
-import { Post } from "@prisma/client"; 
 import BlogCard from "../components/BlogCard";
+import { Appbar } from "../components/Appbar";
+import { Blog } from "@/types/BlogTypes"; // Import Blog type
 
-// Fetcher function using fetch API
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function AllBlogs() {
     const [sortBy, setSortBy] = useState<"upvotes" | "createdAt">("createdAt");
-    const { data: blogs, mutate, error } = useSWR<Post[]>(`/api/all-blogs?sortBy=${sortBy}`, fetcher);
+
+    // Define the type of blogs as an array of Blog or undefined
+    const { data: blogs, mutate, error } = useSWR<Blog[]>(`/api/all-blogs?sortBy=${sortBy}`, fetcher);
 
     const handleUpvote = async (blogId: number) => {
         try {
-            const response = await fetch(`/api/all-blogs/${blogId}`, {
+            const response = await fetch(`/api/all-blogs/${blogId}/upvote`, {
                 method: 'POST',
             });
             if (!response.ok) {
@@ -32,7 +34,7 @@ export default function AllBlogs() {
 
     return (
         <div>
-            {/* Sorting Options */}
+            <Appbar isBlogPage={true} />
             <div className="mb-4">
                 <button onClick={() => setSortBy("createdAt")} className="mr-2 p-2 border border-gray-300 rounded">
                     Sort by Date
@@ -42,10 +44,9 @@ export default function AllBlogs() {
                 </button>
             </div>
 
-            {/* Blog List using BlogCard component */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {blogs.map((blog: Post) => (
-                    <BlogCard key={blog.id} blog={blog} mode="short" onUpvote={handleUpvote} />
+                {Array.isArray(blogs) && blogs.map((blog) => (
+                    <BlogCard key={blog.id} mode="short" blog={blog} onUpvote={handleUpvote} />
                 ))}
             </div>
         </div>
