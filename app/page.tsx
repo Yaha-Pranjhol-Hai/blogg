@@ -20,6 +20,20 @@ export default function Home() {
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const currentYear = new Date().getFullYear()
 
+  const handleUpvote = async (blogId: number) => {
+    try {
+        const response = await fetch(`/api/all-blogs/${blogId}/upvote`, {
+            method: 'POST',
+        });
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Failed to upvote');
+        }
+    } catch (err) {
+        console.error("Failed to upvote", err);
+    }
+};
+
   useEffect(() => {
     const loadBlogs = async () => {
       try {
@@ -31,11 +45,6 @@ export default function Home() {
     };
     loadBlogs();
   }, []);
-
-  const onUpvote = (blogId: number) => {
-    console.log("Upvoted blog with ID:", blogId);
-    // You can add further functionality here, like making an API call to update the upvote count
-  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -72,7 +81,7 @@ export default function Home() {
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {blogs.map((blog) => (
-              <BlogCard key={blog.id} blog={blog} mode="short" onUpvote={onUpvote} />
+              <BlogCard key={blog.id} blog={blog} mode="short" onUpvote={handleUpvote} />
             ))}
           </div>
         </div>
