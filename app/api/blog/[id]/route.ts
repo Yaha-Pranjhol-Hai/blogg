@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
 
+// GET: Fetches individual blog details based on the ID.
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const session = await getServerSession(authOptions);
@@ -33,6 +34,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
+// PUT: Updates an existing blog post.
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const session = await getServerSession(authOptions);
@@ -69,6 +71,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
+// DELETE: Deletes a blog post.
 export async function DELETE(req: NextRequest, { params } :{ params:  { id : string}}) {
     try {
       const session = await getServerSession(authOptions);
@@ -89,6 +92,6 @@ export async function DELETE(req: NextRequest, { params } :{ params:  { id : str
     
     } catch (error) {
       console.error("DELETE Error",error);
-      return NextResponse.json({ messaga: " Internal Server Error for Delete"}, { status: 500})
+      return NextResponse.json({ message: " Internal Server Error for Delete"}, { status: 500})
     }
 }

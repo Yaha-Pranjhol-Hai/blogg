@@ -13,6 +13,7 @@ async function fetchBlogs() {
   if (!res.ok) {
     throw new Error("Failed to fetch blogs");
   }
+  
   return res.json();
 }
 
@@ -64,7 +65,7 @@ export default function Home() {
             <div className="space-x-4">
               <Link
                 className="inline-flex h-9 items-center justify-center rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-gray-50 shadow transition-colors hover:bg-gray-900/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-950 disabled:pointer-events-none disabled:opacity-50"
-                href="#"
+                href="/all-blogs"
               >
                 Read Latest Post
               </Link>
@@ -95,15 +96,6 @@ export default function Home() {
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Blogg is a platform for sharing insightful articles and stories. We aim to provide thoughtful content and engaging narratives on a wide range of topics.
             </p>
-          </div>
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Quick Links</h3>
-            <nav className="grid grid-cols-2 gap-2">
-              <Link href="/" className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100">Home</Link>
-              <Link href="/about" className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100">About</Link>
-              <Link href="/blogs" className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100">All Blogs</Link>
-              <Link href="/contact" className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100">Contact</Link>
-            </nav>
           </div>
         </div>
         <div className="my-8" />
