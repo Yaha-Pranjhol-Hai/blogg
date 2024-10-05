@@ -1,17 +1,18 @@
+"use client";
+
 import { signIn, signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { Button } from "./ui/button";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 
-// Define the props for the Appbar component
 interface AppbarProps {
-    isBlogPage?: boolean; // Optional prop
+    isBlogPage?: boolean;
 }
 
-export function Appbar({ isBlogPage = false }: AppbarProps) { // Default to false
+export function Appbar({ isBlogPage = false }: AppbarProps) { 
     const { data: session } = useSession();
-    const pathname = usePathname(); // Get the current path
+    const pathname = usePathname();
 
     const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
 

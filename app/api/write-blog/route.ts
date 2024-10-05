@@ -5,6 +5,7 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+// POST for creating new blogs.
 export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
 
