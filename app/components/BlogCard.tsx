@@ -7,17 +7,55 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/app/comp
 import { ChevronUp, Bookmark, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 
 const BlogCard: React.FC<BlogCardProps> = ({ blog, mode }) => {
-  const { id, title, content, upvotes } = blog;
+  const { id, title, content, upvotes, imageUrl } = blog;
   const [hasUpvoted, setHasUpvoted] = useState(false);
   const [voteCount, setVoteCount] = useState(upvotes || 0);
+  const [image, setImage] = useState(imageUrl || "");
+  const [loading, setLoading] = useState(false);
 
   const router = useRouter();
 
   useEffect(() => {
     setVoteCount(upvotes || 0);
   }, [upvotes]);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+  
+    const reader = new FileReader();
+    reader.readAsDataURL(file); // Convert the file to a base64 string
+    reader.onloadend = async () => {
+      setLoading(true);
+      try {
+        // Send the base64 image to the backend
+        const res = await fetch("/api/updatePostImage", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ postId: id, image: reader.result }), // Send the image and postId
+        });
+  
+        console.log('Response:', res);
+  
+        if (!res.ok) {
+          const error = await res.json();
+          console.error('Failed to update post image:', error);
+          return;
+        }
+  
+        // Parse the JSON response
+        const data = await res.json();
+        setImage(data.imageUrl); // Set the image URL in your component's state
+      } catch (err) {
+        console.error('Error uploading image:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+  };
 
   const handleUpvote = async () => {
     if (hasUpvoted) return;
@@ -34,11 +72,13 @@ const BlogCard: React.FC<BlogCardProps> = ({ blog, mode }) => {
       console.error("Failed to upvote", err);
     }
   };
-
   const cardContent = (
     <>
       <CardHeader>
         <CardTitle className="text-xl font-bold">{title}</CardTitle>
+        {image && <Image src={image} alt={title} className="w-full h-auto my-4" />}
+        <input type="file" onChange={handleImageUpload} />
+        {loading && <p>Uploading image...</p>}
       </CardHeader>
       <CardContent>
         <p className={`text-gray-700 ${mode === "short" ? "line-clamp-3" : ""}`}>
