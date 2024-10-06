@@ -1,18 +1,14 @@
 "use client";
 
 import useSWR from "swr";
-import { useState } from "react";
 import BlogCard from "../components/BlogCard";
 import { Appbar } from "../components/Appbar";
-import { Blog } from "@/types/BlogTypes"; // Import Blog type
+import { Blog } from "@/types/BlogTypes";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function AllBlogs() {
-    const [sortBy, setSortBy] = useState<"upvotes" | "createdAt">("createdAt");
-
-    // Define the type of blogs as an array of Blog or undefined
-    const { data: blogs, mutate, error } = useSWR<Blog[]>(`/api/all-blogs?sortBy=${sortBy}`, fetcher);
+    const { data: blogs, mutate, error } = useSWR<Blog[]>('/api/all-blogs', fetcher);
 
     const handleUpvote = async (blogId: number) => {
         try {
@@ -35,18 +31,12 @@ export default function AllBlogs() {
     return (
         <div>
             <Appbar isBlogPage={true} />
-            <div className="mb-4">
-                <button onClick={() => setSortBy("createdAt")} className="mr-2 p-2 border border-gray-300 rounded">
-                    Sort by Date
-                </button>
-                <button onClick={() => setSortBy("upvotes")} className="p-2 border border-gray-300 rounded">
-                    Sort by Upvotes
-                </button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Masonry Layout */}
+            <div className="masonry p-4">
                 {Array.isArray(blogs) && blogs.map((blog) => (
-                    <BlogCard key={blog.id} mode="short" blog={blog} onUpvote={handleUpvote} />
+                    <div key={blog.id} className="masonry-item">
+                        <BlogCard mode="short" blog={blog} onUpvote={handleUpvote} />
+                    </div>
                 ))}
             </div>
         </div>
