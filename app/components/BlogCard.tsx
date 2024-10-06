@@ -18,6 +18,12 @@ const BlogCard: React.FC<BlogCardProps> = ({ blog, mode }) => {
 
   const router = useRouter();
 
+  // Function to optimize Cloudinary image URL
+  const getOptimizedImageUrl = (url: string) => {
+    if (!url) return "";
+    return url.replace('/upload/', '/upload/q_auto,f_auto,w_800/'); // Adjust the size (w_800) and quality (q_auto)
+  };
+
   useEffect(() => {
     setVoteCount(upvotes || 0);
   }, [upvotes]);
@@ -25,7 +31,7 @@ const BlogCard: React.FC<BlogCardProps> = ({ blog, mode }) => {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-  
+
     const reader = new FileReader();
     reader.readAsDataURL(file); // Convert the file to a base64 string
     reader.onloadend = async () => {
@@ -37,18 +43,16 @@ const BlogCard: React.FC<BlogCardProps> = ({ blog, mode }) => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ postId: id, image: reader.result }), // Send the image and postId
         });
-  
-        console.log('Response:', res);
-  
+
         if (!res.ok) {
           const error = await res.json();
           console.error('Failed to update post image:', error);
           return;
         }
-  
+
         // Parse the JSON response
         const data = await res.json();
-        setImage(data.imageUrl); // Set the image URL in your component's state
+        setImage(getOptimizedImageUrl(data.imageUrl)); // Set the optimized image URL in your component's state
       } catch (err) {
         console.error('Error uploading image:', err);
       } finally {
@@ -72,11 +76,22 @@ const BlogCard: React.FC<BlogCardProps> = ({ blog, mode }) => {
       console.error("Failed to upvote", err);
     }
   };
+
   const cardContent = (
     <>
       <CardHeader>
         <CardTitle className="text-xl font-bold">{title}</CardTitle>
-        {image && <Image src={image} alt={title} className="w-full h-auto my-4" />}
+        {image && (
+          <Image
+            width={800}
+            height={600}
+            quality={100} // Set quality for Next.js image optimization
+            src={getOptimizedImageUrl(image)} // Use the optimized Cloudinary image URL
+            alt={title}
+            className="w-full h-auto my-4 object-cover"
+            priority={true} // Optionally, you can prioritize loading of this image
+          />
+        )}
         <input type="file" onChange={handleImageUpload} />
         {loading && <p>Uploading image...</p>}
       </CardHeader>
