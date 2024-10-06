@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { authOptions } from "@/auth";
 import { getServerSession } from "next-auth/next";
 import { NextRequest, NextResponse } from "next/server";
+import { uploadOnCloudinary } from "@/lib/cloudinary";
 
 const prisma = new PrismaClient();
 
@@ -34,41 +35,65 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-// PUT: Updates an existing blog post.
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-  try {
-    const session = await getServerSession(authOptions);
+    try {
+        const session = await getServerSession(authOptions);
 
-    // Check if the user is authenticated
-    if (!session || !session.user || !session.user.id) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+        // Check if the user is authenticated
+        if (!session || !session.user || !session.user.id) {
+            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+        }
+
+        const id = parseInt(params.id, 10);
+        const { title, content, image } = await req.json(); // Accepting image along with title and content
+
+        // Validate input
+        if (!title || !content) {
+            return NextResponse.json({ message: "Invalid input data" }, { status: 400 });
+        }
+
+        // Initialize image URL
+        let imageUrl: string | null = null;
+
+        // If an image is provided, upload it to Cloudinary
+        if (image) {
+            try {
+                imageUrl = await uploadOnCloudinary(image);
+                if (!imageUrl) {
+                    throw new Error("Image upload failed");
+                }
+            } catch (uploadError) {
+                console.error("Image upload error:", uploadError);
+                return NextResponse.json({ message: "Failed to upload image" }, { status: 500 });
+            }
+        }
+
+        // Prepare update data object
+        const updateData: any = {
+            title,
+            content,
+        };
+
+        // Only add imageUrl if it's provided
+        if (imageUrl) {
+            updateData.imageUrl = imageUrl;
+        }
+
+        // Update the blog post
+        const updatedBlog = await prisma.post.update({
+            where: {
+                id: id,
+            },
+            data: updateData,
+        });
+
+        return NextResponse.json(updatedBlog);
+    } catch (error) {
+        console.error("PUT error:", error);
+        return NextResponse.json({ message: "Internal Server Error for Post" }, { status: 500 });
+    } finally {
+        await prisma.$disconnect();
     }
-
-    const id = parseInt(params.id, 10);
-    const { title, content } = await req.json();
-
-    // Validate input
-    if (!title || !content ) {
-      return NextResponse.json({ message: "Invalid input data" }, { status: 400 });
-    }
-
-    const updatedBlog = await prisma.post.update({
-      where: {
-        id: id,
-      },
-      data: {
-        title,
-        content,
-      },
-    });
-
-    return NextResponse.json(updatedBlog);
-  } catch (error) {
-    console.error("PUT error:", error);
-    return NextResponse.json({ message: "Internal Server Error for Post" }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
-  }
 }
 
 // DELETE: Deletes a blog post.

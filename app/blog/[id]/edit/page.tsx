@@ -9,6 +9,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import BlogCardProps from "@/types/BlogTypes";
+import Image from "next/image";
 
 const EditBlog = () => {
     const { id } = useParams(); // Get dynamic route parameter
@@ -18,6 +19,7 @@ const EditBlog = () => {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [imageUrl, setImageUrl] = useState('');
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         const fetchBlog = async () => {
@@ -41,6 +43,37 @@ const EditBlog = () => {
         fetchBlog();
     }, [id]);
 
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onloadend = async () => {
+            setLoading(true);
+            try {
+                const res = await fetch("/api/updatePostImage", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ postId: id, image: reader.result }),
+                });
+
+                if (!res.ok) {
+                    const error = await res.json();
+                    console.error('Failed to update post image:', error);
+                    return;
+                }
+
+                const data = await res.json();
+                setImageUrl(data.imageUrl); // Update the image URL
+            } catch (err) {
+                console.error('Error uploading image:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -51,7 +84,7 @@ const EditBlog = () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ title, content, imageUrl }),
+                body: JSON.stringify({ title, content, imageUrl }), // Include the imageUrl here
             });
 
             if (res.ok) {
@@ -90,6 +123,28 @@ const EditBlog = () => {
                                     onChange={(e) => setContent(e.target.value)}
                                     className="w-full h-64"
                                 />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="image">Upload Image</Label>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleImageUpload}
+                                />
+                                {/* Show the current image if exists */}
+                                {imageUrl && (
+                                    <div className="relative w-full h-64">
+                                        <Image
+                                            src={imageUrl}
+                                            alt={title}
+                                            layout="fill"
+                                            objectFit="cover"
+                                            className="rounded-lg"
+                                        />
+                                    </div>
+                                )}
+                                {loading && <p>Uploading image...</p>}
                             </div>
 
                             <div className="flex justify-end space-x-4">

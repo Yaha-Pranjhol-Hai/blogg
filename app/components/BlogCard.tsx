@@ -40,6 +40,7 @@ const BlogCard: React.FC<BlogCardProps> = ({ blog, mode }) => {
                         width={600}
                         height={400}
                         quality={100}
+                        priority
                         className="w-full h-auto object-cover mb-4"
                     />
                 )}
