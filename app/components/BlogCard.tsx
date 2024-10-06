@@ -6,7 +6,6 @@ import { Button } from "./ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/app/components/ui/card";
 import { ChevronUp, Bookmark, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import Image from "next/image";
 
 const BlogCard: React.FC<BlogCardProps> = ({ blog, mode }) => {
