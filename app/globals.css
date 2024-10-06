@@ -64,3 +64,29 @@
     @apply bg-background text-foreground;
   }
 }
+
+
+/* Masonry with CSS columns */
+.masonry {
+  column-count: 3; /* Number of columns */
+  column-gap: 16px; /* Gap between columns */
+}
+
+.masonry-item {
+  display: inline-block; /* Ensure the items are block level inside the columns */
+  width: 100%; /* Each card takes full column width */
+  margin-bottom: 16px; /* Space between items */
+}
+
+/* Adjust column count for responsiveness */
+@media (max-width: 1024px) {
+  .masonry {
+      column-count: 2;
+  }
+}
+
+@media (max-width: 768px) {
+  .masonry {
+      column-count: 1;
+  }
+}
