@@ -97,26 +97,30 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 }
 
 // DELETE: Deletes a blog post.
-export async function DELETE(req: NextRequest, { params } :{ params:  { id : string}}) {
-    try {
+export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+  try {
       const session = await getServerSession(authOptions);
 
-    if (!session || !session.user || !session.user.id) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
+      if (!session || !session.user || !session.user.id) {
+          return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      }
 
-    const id = parseInt(params.id, 10);
+      const id = parseInt(params.id, 10);
 
-     await prisma.post.delete({
-      where: {
-        id: id,
-      },
-    })
+      if (isNaN(id)) {
+          return NextResponse.json({ message: "Invalid blog ID" }, { status: 400 });
+      }
 
-    return NextResponse.json({ message: "The Post has been deleted successfully."},{ status: 200})
-    
-    } catch (error) {
-      console.error("DELETE Error",error);
-      return NextResponse.json({ message: " Internal Server Error for Delete"}, { status: 500})
-    }
+      // Deleting the blog post
+      await prisma.post.delete({
+          where: {
+              id: id,
+          },
+      });
+
+      return NextResponse.json({ message: "The post has been deleted successfully." }, { status: 200 });
+  } catch (error) {
+      console.error("DELETE Error:", error);
+      return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
+  }
 }

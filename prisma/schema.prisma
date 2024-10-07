@@ -14,7 +14,7 @@ model Post {
   imageUrl  String?
   authorId  Int     
   upvotes   Upvote[]
-  author    User     @relation(fields: [authorId], references: [id])
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -23,8 +23,8 @@ model Upvote {
   id        Int     @id @default(autoincrement())
   postId    Int
   userId    Int
-  post      Post    @relation(fields: [postId], references: [id])
-  user      User    @relation(fields: [userId], references: [id])
+  post      Post    @relation(fields: [postId], references: [id], onDelete: Cascade)  // Ensure upvotes are deleted if post is deleted
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)  // Ensure upvotes are deleted if user is deleted
 
   @@unique([postId, userId])  // Ensure a user can only upvote once per post
 }
