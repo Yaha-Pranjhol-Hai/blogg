@@ -53,30 +53,30 @@ export default function WriteBlogPage() {
 
     const handleSubmit = async (e: React.MouseEvent) => {
         e.preventDefault();
-
-        if (!title || !content || !imageUrl) {
-            alert("All fields are required.");
+    
+        if (!title || !content) { // Remove imageUrl validation here
+            alert("Title and content are required.");
             return;
         }
-
+    
         // Prevent form submission if the image is still uploading
         if (isImageUploading) {
             alert("Image is still uploading. Please wait.");
             return;
         }
-
+    
         if (isLoading) return;
         setIsLoading(true);
-
+    
         try {
             const response = await fetch("/api/write-blog", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ title, content, image: imageUrl }), 
+                body: JSON.stringify({ title, content, image: imageUrl }), // imageUrl will be null if no image is provided
             });
-
+    
             if (response.ok) {
                 await response.json();
                 router.push('/');
@@ -84,7 +84,7 @@ export default function WriteBlogPage() {
                 const error = await response.json();
                 alert(error.message);
             }
-
+    
         } catch (error) {
             console.error("POST error:", error);
             alert("An error occurred. Please try again.");
@@ -92,6 +92,7 @@ export default function WriteBlogPage() {
             setIsLoading(false);
         }
     };
+    
 
     useEffect(() => {
         if (status === "loading") return;
