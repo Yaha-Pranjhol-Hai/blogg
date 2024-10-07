@@ -12,7 +12,6 @@ import { Appbar } from "../components/Appbar";
 export default function WriteBlogPage() {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
-    const [image, setImage] = useState<File | null>(null); // Handle the image file
     const [imageUrl, setImageUrl] = useState(''); // Handle the image URL after upload
     const [isImageUploading, setIsImageUploading] = useState(false); // Track if image is uploading
     const [isLoading, setIsLoading] = useState(false);
@@ -24,7 +23,6 @@ export default function WriteBlogPage() {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        setImage(file);
         setIsImageUploading(true); // Start tracking image upload
 
         const formData = new FormData();
@@ -53,30 +51,29 @@ export default function WriteBlogPage() {
 
     const handleSubmit = async (e: React.MouseEvent) => {
         e.preventDefault();
-    
-        if (!title || !content) { // Remove imageUrl validation here
+
+        if (!title || !content) {
             alert("Title and content are required.");
             return;
         }
-    
-        // Prevent form submission if the image is still uploading
+
         if (isImageUploading) {
             alert("Image is still uploading. Please wait.");
             return;
         }
-    
+
         if (isLoading) return;
         setIsLoading(true);
-    
+
         try {
             const response = await fetch("/api/write-blog", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ title, content, image: imageUrl }), // imageUrl will be null if no image is provided
+                body: JSON.stringify({ title, content, image: imageUrl }), // Use imageUrl for image
             });
-    
+
             if (response.ok) {
                 await response.json();
                 router.push('/');
@@ -84,7 +81,7 @@ export default function WriteBlogPage() {
                 const error = await response.json();
                 alert(error.message);
             }
-    
+
         } catch (error) {
             console.error("POST error:", error);
             alert("An error occurred. Please try again.");
@@ -92,7 +89,6 @@ export default function WriteBlogPage() {
             setIsLoading(false);
         }
     };
-    
 
     useEffect(() => {
         if (status === "loading") return;
@@ -140,7 +136,7 @@ export default function WriteBlogPage() {
                                     onChange={handleImageChange}
                                     className="w-full"
                                 />
-                                {isImageUploading && <p>Uploading image, please wait...</p>} {/* Display during image upload */}
+                                {isImageUploading && <p>Uploading image, please wait...</p>}
                             </div>
 
                             <div className="flex justify-end space-x-4">
