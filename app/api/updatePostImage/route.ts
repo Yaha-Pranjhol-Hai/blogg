@@ -13,6 +13,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing postId or image' }, { status: 400 });
     }
 
+    // Ensure postId is an integer
+    const parsedPostId = parseInt(postId, 10);
+
+    // Check if the parsing is successful
+    if (isNaN(parsedPostId)) {
+      return NextResponse.json({ error: 'Invalid postId' }, { status: 400 });
+    }
+
     // Upload the image to Cloudinary
     const imageUrl = await uploadOnCloudinary(image);
 
@@ -22,8 +30,8 @@ export async function POST(req: Request) {
 
     // Update the post with the new image URL
     const post = await prisma.post.update({
-      where: { id: postId },
-      data: { imageUrl }
+      where: { id: parsedPostId }, // Use parsedPostId here
+      data: { imageUrl },
     });
 
     return NextResponse.json({ post, imageUrl }); // Return updated post and image URL
@@ -32,3 +40,4 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Failed to update post image' }, { status: 500 });
   }
 }
+

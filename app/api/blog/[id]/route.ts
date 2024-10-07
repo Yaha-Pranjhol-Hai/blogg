@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { authOptions } from "@/auth";
 import { getServerSession } from "next-auth/next";
 import { NextRequest, NextResponse } from "next/server";
+import { uploadOnCloudinary } from "@/lib/cloudinary";
 
 const prisma = new PrismaClient();
 
@@ -34,64 +35,89 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-// PUT: Updates an existing blog post.
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const session = await getServerSession(authOptions);
+      const session = await getServerSession(authOptions);
 
-    // Check if the user is authenticated
-    if (!session || !session.user || !session.user.id) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
+      if (!session || !session.user || !session.user.id) {
+          return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      }
 
-    const id = parseInt(params.id, 10);
-    const { title, content } = await req.json();
+      const id = parseInt(params.id, 10);
+      const { title, content, image } = await req.json();
 
-    // Validate input
-    if (!title || !content ) {
-      return NextResponse.json({ message: "Invalid input data" }, { status: 400 });
-    }
+      if (!title || !content) {
+          return NextResponse.json({ message: "Invalid input data" }, { status: 400 });
+      }
 
-    const updatedBlog = await prisma.post.update({
-      where: {
-        id: id,
-      },
-      data: {
-        title,
-        content,
-      },
-    });
+      // Initialize image URL
+      let imageUrl: string | null = null;
 
-    return NextResponse.json(updatedBlog);
+      // If an image is provided, upload it to Cloudinary
+      if (image) {
+          try {
+              imageUrl = await uploadOnCloudinary(image);
+              if (!imageUrl) {
+                  throw new Error("Image upload failed");
+              }
+          } catch (uploadError) {
+              console.error("Image upload error:", uploadError);
+              return NextResponse.json({ message: "Failed to upload image" }, { status: 500 });
+          }
+      }
+
+      // Define a type for the updateData object
+      const updateData: { title: string, content: string, imageUrl?: string | null } = {
+          title,
+          content,
+      };
+
+      if (imageUrl) {
+          updateData.imageUrl = imageUrl;
+      }
+
+      const updatedBlog = await prisma.post.update({
+          where: {
+              id: id,
+          },
+          data: updateData,
+      });
+
+      return NextResponse.json(updatedBlog);
   } catch (error) {
-    console.error("PUT error:", error);
-    return NextResponse.json({ message: "Internal Server Error for Post" }, { status: 500 });
+      console.error("PUT error:", error);
+      return NextResponse.json({ message: "Internal Server Error for Post" }, { status: 500 });
   } finally {
-    await prisma.$disconnect();
+      await prisma.$disconnect();
   }
 }
 
+
 // DELETE: Deletes a blog post.
-export async function DELETE(req: NextRequest, { params } :{ params:  { id : string}}) {
-    try {
+export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+  try {
       const session = await getServerSession(authOptions);
 
-    if (!session || !session.user || !session.user.id) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
+      if (!session || !session.user || !session.user.id) {
+          return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      }
 
-    const id = parseInt(params.id, 10);
+      const id = parseInt(params.id, 10);
 
-     await prisma.post.delete({
-      where: {
-        id: id,
-      },
-    })
+      if (isNaN(id)) {
+          return NextResponse.json({ message: "Invalid blog ID" }, { status: 400 });
+      }
 
-    return NextResponse.json({ message: "The Post has been deleted successfully."},{ status: 200})
-    
-    } catch (error) {
-      console.error("DELETE Error",error);
-      return NextResponse.json({ message: " Internal Server Error for Delete"}, { status: 500})
-    }
+      // Deleting the blog post
+      await prisma.post.delete({
+          where: {
+              id: id,
+          },
+      });
+
+      return NextResponse.json({ message: "The post has been deleted successfully." }, { status: 200 });
+  } catch (error) {
+      console.error("DELETE Error:", error);
+      return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
+  }
 }

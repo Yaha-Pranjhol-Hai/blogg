@@ -12,19 +12,57 @@ import { Appbar } from "../components/Appbar";
 export default function WriteBlogPage() {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
-    const [ isLoading, setIsLoading ] = useState(false);
+    const [imageUrl, setImageUrl] = useState(''); // Handle the image URL after upload
+    const [isImageUploading, setIsImageUploading] = useState(false); // Track if image is uploading
+    const [isLoading, setIsLoading] = useState(false);
     const { data: session, status } = useSession();
     const router = useRouter();
+
+    // Handle image upload on file input change
+    const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsImageUploading(true); // Start tracking image upload
+
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("upload_preset", process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || '');
+
+        try {
+            const res = await fetch(`https://api.cloudinary.com/v1_1/pranjaloncloud/image/upload`, {
+                method: "POST",
+                body: formData,
+            });
+            const data = await res.json();
+
+            if (data.secure_url) {
+                setImageUrl(data.secure_url); // Store uploaded image URL
+            } else {
+                alert("Image upload failed");
+            }
+        } catch (error) {
+            console.error("Image upload error:", error);
+            alert("Failed to upload image.");
+        } finally {
+            setIsImageUploading(false); // Image upload complete
+        }
+    };
 
     const handleSubmit = async (e: React.MouseEvent) => {
         e.preventDefault();
 
         if (!title || !content) {
-            alert("All fields are required.");
+            alert("Title and content are required.");
             return;
         }
 
-        if(isLoading) return;
+        if (isImageUploading) {
+            alert("Image is still uploading. Please wait.");
+            return;
+        }
+
+        if (isLoading) return;
         setIsLoading(true);
 
         try {
@@ -33,11 +71,11 @@ export default function WriteBlogPage() {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ title, content }),
+                body: JSON.stringify({ title, content, image: imageUrl }), // Use imageUrl for image
             });
 
             if (response.ok) {
-                await response.json(); // Assuming server returns JSON
+                await response.json();
                 router.push('/');
             } else {
                 const error = await response.json();
@@ -47,11 +85,10 @@ export default function WriteBlogPage() {
         } catch (error) {
             console.error("POST error:", error);
             alert("An error occurred. Please try again.");
-        }
-        finally {
+        } finally {
             setIsLoading(false);
-        }    
-    }; 
+        }
+    };
 
     useEffect(() => {
         if (status === "loading") return;
@@ -63,7 +100,6 @@ export default function WriteBlogPage() {
     return (
         <div className="min-h-screen flex flex-col">
             <Appbar isBlogPage={true} />
-            {/* Hero Section with Create Blog form */}
             {session && (
                 <div className="min-h-screen bg-gray-50">
                     <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -91,9 +127,21 @@ export default function WriteBlogPage() {
                                 />
                             </div>
 
+                            <div className="space-y-2">
+                                <Label htmlFor="image">Image</Label>
+                                <Input
+                                    id="image"
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleImageChange}
+                                    className="w-full"
+                                />
+                                {isImageUploading && <p>Uploading image, please wait...</p>}
+                            </div>
+
                             <div className="flex justify-end space-x-4">
-                                <Button type="button" onClick={handleSubmit} disabled={isLoading}>
-                                    { isLoading ? "Publishing..." : "Publish"}
+                                <Button type="button" onClick={handleSubmit} disabled={isLoading || isImageUploading}>
+                                    {isLoading ? "Publishing..." : "Publish"}
                                 </Button>
                             </div>
                         </form>
