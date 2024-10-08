@@ -8,15 +8,19 @@ import BlogCard from "./components/BlogCard";
 import { Mail, Github, Linkedin, Copyright } from "lucide-react"
 import { Button } from "./components/ui/button";
 
-async function fetchBlogs() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/my-blogs`);
+async function fetchAllBlogs() {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/all-blogs`);
   if (!res.ok) {
     throw new Error("Failed to fetch blogs");
   }
-  
+
   return res.json();
 }
 
+function getRandomBlogs(blogs: Blog[], count: number) {
+  const shuffled = blogs.sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, count);
+}
 export default function Home() {
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const currentYear = new Date().getFullYear()
@@ -35,17 +39,18 @@ export default function Home() {
     }
 };
 
-  useEffect(() => {
-    const loadBlogs = async () => {
-      try {
-        const blogsData = await fetchBlogs();
-        setBlogs(blogsData);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-    loadBlogs();
-  }, []);
+useEffect(() => {
+  const loadBlogs = async () => {
+    try {
+      const blogsData = await fetchAllBlogs();
+      const randomBlogs = getRandomBlogs(blogsData, 3);
+      setBlogs(randomBlogs);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  loadBlogs();
+}, []);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -67,26 +72,29 @@ export default function Home() {
                 className="inline-flex h-9 items-center justify-center rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-gray-50 shadow transition-colors hover:bg-gray-900/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-950 disabled:pointer-events-none disabled:opacity-50"
                 href="/all-blogs"
               >
-                Read Latest Post
+                Read Latest Blogs
               </Link>
             </div>
           </div>
         </div>
       </section>
       
-      {/* Featured Posts Section */}
-      <section className="w-full py-12 md:py-24 lg:py-32 bg-gray-100">
-        <div className="container mx-auto px-4 md:px-6">
-          <h2 className="text-2xl font-bold tracking-tighter sm:text-3xl md:text-4xl mb-8 text-center">
-            Featured Posts
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Featured Blogs Section */}
+<section className="w-full py-12 md:py-24 lg:py-32 bg-gray-100">
+    <div className="container mx-auto px-4 md:px-6">
+        <h2 className="text-2xl font-bold tracking-tighter sm:text-3xl md:text-4xl mb-8 text-center">
+            Featured Blogs
+        </h2>
+        {/* Masonry grid layout for featured blogs */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {blogs.map((blog) => (
-              <BlogCard key={blog.id} blog={blog} mode="short" onUpvote={handleUpvote} />
+                <div key={blog.id} className="break-inside-avoid-column">
+                    <BlogCard key={blog.id} blog={blog} mode="short" onUpvote={handleUpvote} />
+                </div>
             ))}
-          </div>
         </div>
-      </section>
+    </div>
+</section>
 
       <footer className="bg-gray-50 dark:bg-gray-900 border-t">
       <div className="container mx-auto px-4 py-8">
