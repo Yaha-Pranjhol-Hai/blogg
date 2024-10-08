@@ -8,15 +8,19 @@ import BlogCard from "./components/BlogCard";
 import { Mail, Github, Linkedin, Copyright } from "lucide-react"
 import { Button } from "./components/ui/button";
 
-async function fetchBlogs() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/my-blogs`);
+async function fetchAllBlogs() {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/all-blogs`);
   if (!res.ok) {
     throw new Error("Failed to fetch blogs");
   }
-  
-  return res.json();
+
+  return res.json();  // This will return all blogs.
 }
 
+function getRandomBlogs(blogs: Blog[], count: number) {
+  const shuffled = blogs.sort(() => 0.5 - Math.random()); // Shuffle the array
+  return shuffled.slice(0, count); // Return the first `count` elements from the shuffled array
+}
 export default function Home() {
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const currentYear = new Date().getFullYear()
@@ -35,17 +39,18 @@ export default function Home() {
     }
 };
 
-  useEffect(() => {
-    const loadBlogs = async () => {
-      try {
-        const blogsData = await fetchBlogs();
-        setBlogs(blogsData);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-    loadBlogs();
-  }, []);
+useEffect(() => {
+  const loadBlogs = async () => {
+    try {
+      const blogsData = await fetchAllBlogs();
+      const randomBlogs = getRandomBlogs(blogsData, 3);
+      setBlogs(randomBlogs);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  loadBlogs();
+}, []);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -67,7 +72,7 @@ export default function Home() {
                 className="inline-flex h-9 items-center justify-center rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-gray-50 shadow transition-colors hover:bg-gray-900/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-950 disabled:pointer-events-none disabled:opacity-50"
                 href="/all-blogs"
               >
-                Read Latest Post
+                Read Latest Blogs
               </Link>
             </div>
           </div>
