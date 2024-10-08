@@ -8,7 +8,7 @@ import { Appbar } from "../../../components/Appbar";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import BlogCardProps from "@/types/BlogTypes";
+import { BlogCardProps } from "@/types/BlogTypes";
 import Image from "next/image";
 
 const EditBlog = () => {
@@ -84,7 +84,7 @@ const EditBlog = () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ title, content, imageUrl }), // Include the imageUrl here
+                body: JSON.stringify({ title, content, imageUrl }),
             });
 
             if (res.ok) {

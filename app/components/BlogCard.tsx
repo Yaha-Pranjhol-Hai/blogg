@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import BlogCardProps from "@/types/BlogTypes";
+import { BlogCardProps } from "@/types/BlogTypes";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/app/components/ui/card";
 import { ChevronUp, Bookmark, BookmarkCheck, ArrowRight } from "lucide-react";
