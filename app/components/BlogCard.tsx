@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import BlogCardProps from "@/types/BlogTypes";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/app/components/ui/card";
@@ -10,35 +10,60 @@ import Image from "next/image";
 import { signIn, useSession } from "next-auth/react";
 
 const BlogCard: React.FC<BlogCardProps> = ({ blog, mode }) => {
-    const { id, title, content, upvotes, imageUrl } = blog;
+    const { id, title, content, imageUrl } = blog;
+    const [voteCount, setVoteCount] = useState(blog.upvotes || 0); // Fetch initial upvotes from the blog object
     const [hasUpvoted, setHasUpvoted] = useState(false);
-    const [voteCount, setVoteCount] = useState(upvotes || 0);
     const { data: session } = useSession();
     const router = useRouter();
+
+    // Fetch the vote count and user upvote status from the server when the component mounts
+    useEffect(() => {
+        const fetchVoteCount = async () => {
+            try {
+                const res = await fetch(`/api/all-blogs/${id}/upvote`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setVoteCount(data.voteCount); // Set the vote count from the server
+                    setHasUpvoted(data.hasUpvoted); 
+                }
+            } catch (error) {
+                console.error("Failed to fetch vote count", error);
+            }
+        };
+
+        fetchVoteCount();
+    }, [id]);
 
     const handleUpvote = async () => {
         if (hasUpvoted) return;
 
-        if(!session){
+        if (!session) {
             signIn();
             return;
         }
 
         try {
+            // Send an upvote request to the server
             const response = await fetch(`/api/all-blogs/${id}/upvote`, { method: "POST" });
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.message || "Failed to upvote");
             }
-            setVoteCount((prevCount) => prevCount + 1);
-            setHasUpvoted(true);
+
+            // Fetch the updated vote count after a successful upvote
+            const updatedVoteResponse = await fetch(`/api/all-blogs/${id}/upvote`);
+            if (updatedVoteResponse.ok) {
+                const updatedData = await updatedVoteResponse.json();
+                setVoteCount(updatedData.voteCount); // Update vote count from the server
+                setHasUpvoted(true);
+            }
         } catch (err) {
             console.error("Failed to upvote", err);
         }
     };
 
     return (
-        <Card className="card"> {/* Apply card styles */}
+        <Card className="card">
             <CardHeader>
                 <CardTitle className="text-xl font-bold">{title}</CardTitle>
                 {imageUrl && (
