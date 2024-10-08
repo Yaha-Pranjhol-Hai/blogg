@@ -7,15 +7,23 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/app/comp
 import { ChevronUp, Bookmark, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { signIn, useSession } from "next-auth/react";
 
 const BlogCard: React.FC<BlogCardProps> = ({ blog, mode }) => {
     const { id, title, content, upvotes, imageUrl } = blog;
     const [hasUpvoted, setHasUpvoted] = useState(false);
     const [voteCount, setVoteCount] = useState(upvotes || 0);
+    const { data: session } = useSession();
     const router = useRouter();
 
     const handleUpvote = async () => {
         if (hasUpvoted) return;
+
+        if(!session){
+            signIn();
+            return;
+        }
+
         try {
             const response = await fetch(`/api/all-blogs/${id}/upvote`, { method: "POST" });
             if (!response.ok) {
