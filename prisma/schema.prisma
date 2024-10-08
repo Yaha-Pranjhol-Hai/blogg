@@ -7,6 +7,19 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id        Int     @id @default(autoincrement())
+  name      String?
+  email     String   @unique
+  posts     Post[]
+  accounts  Account[]
+  sessions  Session[]
+  upvotes   Upvote[]
+  bookmarks Bookmark[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Post {
   id        Int      @id @default(autoincrement())
   title     String
@@ -14,6 +27,7 @@ model Post {
   imageUrl  String?
   authorId  Int     
   upvotes   Upvote[]
+  bookmark  Bookmark[]
   author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -23,22 +37,20 @@ model Upvote {
   id        Int     @id @default(autoincrement())
   postId    Int
   userId    Int
-  post      Post    @relation(fields: [postId], references: [id], onDelete: Cascade)  // Ensure upvotes are deleted if post is deleted
-  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)  // Ensure upvotes are deleted if user is deleted
+  post      Post    @relation(fields: [postId], references: [id], onDelete: Cascade)  
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([postId, userId])  // Ensure a user can only upvote once per post
 }
 
-model User {
+model Bookmark {
   id        Int     @id @default(autoincrement())
-  name      String?
-  email     String   @unique
-  posts     Post[]
-  accounts  Account[]
-  sessions  Session[]
-  upvotes   Upvote[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  postId    Int
+  userId    Int
+  post      Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
 }
 
 model Account {
