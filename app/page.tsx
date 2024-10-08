@@ -14,12 +14,12 @@ async function fetchAllBlogs() {
     throw new Error("Failed to fetch blogs");
   }
 
-  return res.json();  // This will return all blogs.
+  return res.json();
 }
 
 function getRandomBlogs(blogs: Blog[], count: number) {
-  const shuffled = blogs.sort(() => 0.5 - Math.random()); // Shuffle the array
-  return shuffled.slice(0, count); // Return the first `count` elements from the shuffled array
+  const shuffled = blogs.sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, count);
 }
 export default function Home() {
   const [blogs, setBlogs] = useState<Blog[]>([]);
