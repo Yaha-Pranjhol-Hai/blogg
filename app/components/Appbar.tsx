@@ -25,6 +25,7 @@ export function Appbar({ isBlogPage = false }: AppbarProps) {
         ? [
               { href: "/write-blog", label: "Write a Blog" },
               { href: "/my-blogs", label: "My Blogs" },
+              { href: "/bookmarks", label: "Bookmarks" },
           ]
         : [];
 

@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import React, { useState } from "react";
-import BlogCardTypes from "@/types/BlogTypes";
+import { BlogCardProps } from "@/types/BlogTypes";
 import { Button } from "./ui/button";
 import { Edit, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
-const MyBlogCard: React.FC<BlogCardTypes> = ({ blog }) => {
+const MyBlogCard: React.FC<BlogCardProps> = ({ blog }) => {
     const router = useRouter();
     const [image] = useState(blog.imageUrl || "");
 

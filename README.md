@@ -7,3 +7,5 @@
 6. Prisma
 7. Render
 8. Typescript
+9. EmailJS
+10. NextAuth
