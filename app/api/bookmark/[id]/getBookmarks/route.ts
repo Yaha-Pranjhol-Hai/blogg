@@ -20,14 +20,13 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
             where: { userId },
             include: { post: true },
         });
-        console.log("Bookmarks found:", bookmarks); // Log what bookmarks are found
         
 
         if (!bookmarks || bookmarks.length === 0) {
-            return NextResponse.json([], { status: 200 }); // Return an empty array if no bookmarks found
+            return NextResponse.json([], { status: 200 }); 
         }
 
-        // Format the bookmark data (optional step, depending on what you need on the client side)
+        // Format the bookmark data
         const bookmarkData = bookmarks.map((bookmark) => ({
             ...bookmark.post, // Spread post details into the response
             hasBookmarked: true, // Include a flag indicating that it's bookmarked
