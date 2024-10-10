@@ -20,26 +20,33 @@ const BlogCard: React.FC<BlogCardProps> = ({ blog, mode }) => {
     useEffect(() => {
         const fetchVoteCountAndBookmarkStatus = async () => {
             try {
+                // Fetch the vote count
                 const voteResponse = await fetch(`/api/all-blogs/${id}/upvote`);
                 if (voteResponse.ok) {
                     const voteData = await voteResponse.json();
                     setVoteCount(voteData.voteCount);
                     setHasUpvoted(voteData.hasUpvoted);
                 }
-
-                // Check if the post is bookmarked
-                const bookmarkResponse = await fetch(`/api/bookmark/${id}`);
-                if (bookmarkResponse.ok) {
-                    const bookmarkData = await bookmarkResponse.json();
-                    setHasBookmarked(bookmarkData.hasBookmarked);
+    
+                // Fetch all bookmarks for the logged-in user
+                if (session?.user?.id) {
+                    const bookmarkResponse = await fetch(`/api/bookmark/${session.user.id}/getBookmarks`);
+                    if (bookmarkResponse.ok) {
+                        const bookmarkData = await bookmarkResponse.json();
+    
+                        // Check if the current blog is bookmarked
+                        const isBookmarked = bookmarkData.some((bookmark: any) => bookmark.id === blog.id);
+                        setHasBookmarked(isBookmarked);
+                    }
                 }
             } catch (error) {
                 console.error("Failed to fetch vote count or bookmark status", error);
             }
         };
-
+    
         fetchVoteCountAndBookmarkStatus();
-    }, [id]);
+    }, [id, blog.id, session]);  
+    
 
     const handleUpvote = async () => {
         if (!session) {
@@ -71,16 +78,16 @@ const BlogCard: React.FC<BlogCardProps> = ({ blog, mode }) => {
             signIn();
             return;
         }
-
+    
         try {
-            const method = hasBookmarked ? "DELETE" : "POST"; 
-            const response = await fetch(`/api/bookmark/${id}`, { method });
+            const response = await fetch(`/api/bookmark/${id}`, { method: hasBookmarked ? "DELETE" : "POST" });
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.message || "Failed to update bookmark");
             }
-
-            setHasBookmarked(!hasBookmarked); // Toggle bookmark state
+    
+            // Update the bookmark state based on the response
+            setHasBookmarked(!hasBookmarked); 
         } catch (err) {
             console.error("Failed to update bookmark", err);
         }

@@ -1,46 +1,23 @@
-// Route to manage bookmarks
-
-import { authOptions } from "@/auth";
-import { prisma } from "@/lib/db";
+import { PrismaClient } from "@prisma/client";
 import { getServerSession } from "next-auth";
+import { authOptions } from "@/auth";
 import { NextRequest, NextResponse } from "next/server";
 
-// GET - Fetch bookmarks for a specific user
-export async function GET() {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session || !session.user || !session.user.id) {
-            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-        }
-
-        const userId = parseInt(session.user.id, 10);
-
-        // Fetch bookmarks for the logged-in user
-        const bookmarks = await prisma.bookmark.findMany({
-            where: { userId },
-            include: {
-                post: true, // Include related post data if needed
-            },
-        });
-
-        return NextResponse.json(bookmarks);
-    } catch (error) {
-        console.error("Error fetching bookmarks:", error);
-        return NextResponse.json({ message: "Error fetching bookmarks" }, { status: 500 });
-    }
-}
+const prisma = new PrismaClient();
 
 // POST - Add a bookmark for a specific post
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
-    const postId = parseInt(params.id, 10);
+    const postId = parseInt(params.id, 10); // Ensure postId is parsed
 
     try {
         const session = await getServerSession(authOptions);
-        if (!session) {
+
+        // Check if session exists and user is logged in
+        if (!session || !session.user) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
 
-        const userId = parseInt(session.user.id, 10);
+        const userId = parseInt(session.user.id, 10); // Ensure userId is extracted from session
 
         // Check if the user has already bookmarked this post
         const existingBookmark = await prisma.bookmark.findUnique({
@@ -63,8 +40,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     }
 }
 
+
 // DELETE - Remove a bookmark for a specific post
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: { id: string } }) {
     const postId = parseInt(params.id, 10);
 
     try {

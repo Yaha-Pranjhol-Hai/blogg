@@ -5,25 +5,33 @@ import { NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
 
-export async function GET() {
+// GET - Fetch bookmarks for a specific user
+export async function GET(req: Request, { params }: { params: { id: string } }) {
     try {
         const session = await getServerSession(authOptions);
-        if (!session || !session.user || !session.user.id) {
+        if (!session || session.user.id !== params.id) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
 
-        const userId = parseInt(session.user.id, 10);
+        const userId = parseInt(params.id, 10);
 
+        // Fetch bookmarks for the user
         const bookmarks = await prisma.bookmark.findMany({
             where: { userId },
             include: {
-                post: true,
+                post: true, // Include related post data
             },
         });
 
-        return NextResponse.json(bookmarks);
+        // Return bookmark data with hasBookmarked set to true
+        const bookmarkData = bookmarks.map((bookmark) => ({
+            ...bookmark.post,
+            hasBookmarked: true,
+        }));
+
+        return NextResponse.json(bookmarkData);
     } catch (error) {
-        console.error("Error while fetching bookmarks:", error);
-        return NextResponse.json({ message: "Error while fetching bookmarks" }, { status: 500 });
+        console.error("Error fetching bookmarks:", error);
+        return NextResponse.json({ message: "Error fetching bookmarks" }, { status: 500 });
     }
 }
