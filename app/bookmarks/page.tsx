@@ -4,17 +4,13 @@ import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Appbar } from "../components/Appbar";
 import BlogCard from "../components/BlogCard";
-import { Bookmark, Blog } from "@/types/BlogTypes";
-
-interface BookmarkWithDetails extends Bookmark {
-    blog: Blog;
-}
+import { Blog } from "@/types/BlogTypes";
 
 const BookmarksPage = () => {
-    const { data: session, status } = useSession();
-    const [bookmarkedPosts, setBookmarkedPosts] = useState<BookmarkWithDetails[]>([]);
-    const [loading, setLoading] = useState(true);  // Loading state
-    const [error, setError] = useState<string | null>(null);  // Error state
+    const { data: session } = useSession();
+    const [bookmarkedPosts, setBookmarkedPosts] = useState<Blog[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchBookmarks = async () => {
@@ -25,32 +21,18 @@ const BookmarksPage = () => {
 
             try {
                 setLoading(true);
-                setError(null);  // Reset error before fetch
-                
+                setError(null);
+
+                // Fetch the bookmarks
                 const response = await fetch(`/api/bookmark/${session.user.id}/getBookmarks`);
                 if (!response.ok) {
-                    throw new Error("Failed to fetch bookmarks");
+                    throw new Error(`Failed to fetch bookmarks. Status: ${response.status}`);
                 }
-                
+
                 const data = await response.json();
-                
-                const bookmarksWithDetails: BookmarkWithDetails[] = await Promise.all(
-                    data.map(async (bookmark: Bookmark) => {
-                        const blogResponse = await fetch(`/api/blog/${bookmark.postId}`);
-                        if (!blogResponse.ok) {
-                            throw new Error("Failed to fetch blog details");
-                        }
-                        const blogData = await blogResponse.json();
-                        return {
-                            ...bookmark,
-                            blog: blogData,
-                        };
-                    })
-                );
-                
-                setBookmarkedPosts(bookmarksWithDetails);
+
+                setBookmarkedPosts(data);
             } catch (error: any) {
-                console.error("Error fetching bookmarks:", error);
                 setError(error.message);
             } finally {
                 setLoading(false);
@@ -91,11 +73,11 @@ const BookmarksPage = () => {
                     {bookmarkedPosts.length === 0 ? (
                         <p>No bookmarks found.</p>
                     ) : (
-                        bookmarkedPosts.map((bookmark) => (
+                        bookmarkedPosts.map((blog) => (
                             <BlogCard 
-                                key={bookmark.postId} 
-                                blog={bookmark.blog} 
-                                mode="short"
+                                key={blog.id} 
+                                blog={blog}
+                                mode="short" 
                             />
                         ))
                     )}
