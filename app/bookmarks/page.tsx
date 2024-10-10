@@ -34,10 +34,14 @@ const BookmarksPage = () => {
                 }
 
                 const data = await response.json();
-
                 setBookmarkedPosts(data);
-            } catch (error: any) {
-                setError(error.message);
+            } catch (error: unknown) {
+                // Ensure error is a string
+                if (error instanceof Error) {
+                    setError(error.message);
+                } else {
+                    setError("An unknown error occurred");
+                }
             } finally {
                 setLoading(false);
             }

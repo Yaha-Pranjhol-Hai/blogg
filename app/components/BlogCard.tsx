@@ -9,6 +9,11 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { signIn, useSession } from "next-auth/react";
 
+interface Bookmark {
+    id: number; 
+    blogId: number;
+}
+
 const BlogCard: React.FC<BlogCardProps> = ({ blog, mode }) => {
     const { id, title, content, imageUrl } = blog;
     const [voteCount, setVoteCount] = useState(blog.upvotes || 0);
@@ -27,15 +32,15 @@ const BlogCard: React.FC<BlogCardProps> = ({ blog, mode }) => {
                     setVoteCount(voteData.voteCount);
                     setHasUpvoted(voteData.hasUpvoted);
                 }
-    
+
                 // Fetch all bookmarks for the logged-in user
                 if (session?.user?.id) {
                     const bookmarkResponse = await fetch(`/api/bookmark/${session.user.id}/getBookmarks`);
                     if (bookmarkResponse.ok) {
-                        const bookmarkData = await bookmarkResponse.json();
-    
+                        const bookmarkData: Bookmark[] = await bookmarkResponse.json();
+
                         // Check if the current blog is bookmarked
-                        const isBookmarked = bookmarkData.some((bookmark: any) => bookmark.id === blog.id);
+                        const isBookmarked = bookmarkData.some((bookmark: Bookmark) => bookmark.blogId === blog.id); // Updated type
                         setHasBookmarked(isBookmarked);
                     }
                 }
@@ -47,7 +52,6 @@ const BlogCard: React.FC<BlogCardProps> = ({ blog, mode }) => {
         fetchVoteCountAndBookmarkStatus();
     }, [id, blog.id, session]);  
     
-
     const handleUpvote = async () => {
         if (!session) {
             signIn();
