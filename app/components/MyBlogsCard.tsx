@@ -21,14 +21,22 @@ const MyBlogCard: React.FC<BlogCardProps> = ({ blog }) => {
     };
 
     return (
-        <div className="flex flex-col space-y-2 border-2 px-3 py-3">
+        <div className="myblog-card flex flex-col space-y-2 border-2 px-3 py-3 h-auto">
             <h3 className="text-xl font-bold">{blog.title}</h3>
-            {image && <Image width={600} height={400} quality={100} src={image} alt={blog.title} className="w-full h-auto my-4 object-cover" />}
-            
+            {image && (
+                <Image
+                    width={600}
+                    height={400}
+                    quality={100}
+                    src={image}
+                    alt={blog.title}
+                    className="w-full h-auto my-4 object-cover"
+                />
+            )}
             <Link className="text-sm font-medium hover:underline underline-offset-4" href={`/blog/${blog.id}`}>
                 Read More
             </Link>
-            <div className="flex justify-end space-x-2">
+            <div className="flex justify-end space-x-2 mt-auto">
                 <Button variant="outline" onClick={handleEditClick}>
                     <Edit className="w-4 h-4 mr-2" /> Edit
                 </Button>
