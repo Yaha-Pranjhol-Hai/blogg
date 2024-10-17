@@ -1,27 +1,25 @@
-import { PrismaClient } from "@prisma/client";
-import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
+import { prisma } from "@/lib/db";
+import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 
-const prisma = new PrismaClient();
-
-// POST - Add a bookmark for a specific post
+// POST - Add a bookmark for a specific blog post
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
-    const postId = parseInt(params.id, 10); // Ensure postId is parsed
+    const blogId = parseInt(params.id, 10);
 
     try {
         const session = await getServerSession(authOptions);
 
-        // Check if session exists and user is logged in
+        // Check if the user is logged in
         if (!session || !session.user) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
 
-        const userId = parseInt(session.user.id, 10); // Ensure userId is extracted from session
+        const userId = parseInt(session.user.id, 10);
 
-        // Check if the user has already bookmarked this post
+        // Check if the user has already bookmarked this blog
         const existingBookmark = await prisma.bookmark.findUnique({
-            where: { postId_userId: { postId, userId } },
+            where: { postId_userId: { postId: blogId, userId } },
         });
 
         if (existingBookmark) {
@@ -30,7 +28,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
         // Create a new bookmark
         await prisma.bookmark.create({
-            data: { postId, userId },
+            data: { postId: blogId, userId },
         });
 
         return NextResponse.json({ message: "Bookmark successful" }, { status: 201 });
@@ -40,14 +38,14 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     }
 }
 
-
-// DELETE - Remove a bookmark for a specific post
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
-    const postId = parseInt(params.id, 10);
+// DELETE - Remove a bookmark for a specific blog post
+export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+    const blogId = parseInt(params.id, 10);
 
     try {
         const session = await getServerSession(authOptions);
-        if (!session) {
+
+        if (!session || !session.user) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
 
@@ -55,12 +53,35 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
 
         // Remove the bookmark
         await prisma.bookmark.delete({
-            where: { postId_userId: { postId, userId } },
+            where: { postId_userId: { postId: blogId, userId } },
         });
 
         return NextResponse.json({ message: "Bookmark removed" }, { status: 200 });
     } catch (error) {
         console.error("Failed to remove bookmark", error);
         return NextResponse.json({ message: "Failed to remove bookmark" }, { status: 500 });
+    }
+}
+
+// GET - Fetch bookmark status for a specific blog post
+export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+    const blogId = parseInt(params.id, 10);
+
+    try {
+        const session = await getServerSession(authOptions);
+        const userId = session?.user?.id ? parseInt(session.user.id, 10) : null;
+
+        if (!userId) {
+            return NextResponse.json({ hasBookmarked: false }, { status: 200 });
+        }
+
+        const hasBookmarked = await prisma.bookmark.findUnique({
+            where: { postId_userId: { postId: blogId, userId } },
+        });
+
+        return NextResponse.json({ hasBookmarked: !!hasBookmarked }, { status: 200 });
+    } catch (error) {
+        console.error("Error fetching bookmark status", error);
+        return NextResponse.json({ message: "Error fetching bookmark status" }, { status: 500 });
     }
 }
