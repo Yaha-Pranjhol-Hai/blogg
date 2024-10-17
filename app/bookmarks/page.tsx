@@ -36,7 +36,6 @@ const BookmarksPage = () => {
                 const data = await response.json();
                 setBookmarkedPosts(data);
             } catch (error: unknown) {
-                // Ensure error is a string
                 if (error instanceof Error) {
                     setError(error.message);
                 } else {
@@ -77,7 +76,7 @@ const BookmarksPage = () => {
     return (
         <div>
             <Appbar />
-            <section className="w-full py-12 md:py-24 lg:py-32 bg-gray-100">
+            <section className="w-full py-12 md:py-24 lg:py-32">
                 <div className="container mx-auto px-4 md:px-6">
                     <h2 className="text-2xl font-bold tracking-tighter sm:text-3xl md:text-4xl mb-8 text-center">
                         Your Bookmarked Posts
