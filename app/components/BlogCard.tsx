@@ -8,6 +8,8 @@ import { ChevronUp, Bookmark, BookmarkCheck, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { signIn, useSession } from "next-auth/react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 const BlogCard: React.FC<BlogCardProps> = ({ blog, mode }) => {
     const { id, title, content, imageUrl } = blog;
@@ -17,11 +19,9 @@ const BlogCard: React.FC<BlogCardProps> = ({ blog, mode }) => {
     const { data: session } = useSession();
     const router = useRouter();
 
-    // Fetch vote count and bookmark status on page load or refresh
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Fetch vote count
                 const voteResponse = await fetch(`/api/all-blogs/${id}/upvote`);
                 if (voteResponse.ok) {
                     const voteData = await voteResponse.json();
@@ -29,7 +29,6 @@ const BlogCard: React.FC<BlogCardProps> = ({ blog, mode }) => {
                     setHasUpvoted(voteData.hasUpvoted);
                 }
 
-                // Fetch bookmark status if user is logged in
                 if (session?.user?.id) {
                     const bookmarkResponse = await fetch(`/api/bookmark/${id}`);
                     if (bookmarkResponse.ok) {
@@ -45,7 +44,6 @@ const BlogCard: React.FC<BlogCardProps> = ({ blog, mode }) => {
         fetchData();
     }, [id, session]);
 
-    // Handle upvote logic
     const handleUpvote = async () => {
         if (!session) {
             signIn();
@@ -61,7 +59,6 @@ const BlogCard: React.FC<BlogCardProps> = ({ blog, mode }) => {
                 throw new Error(errorData.message || "Failed to update upvote");
             }
 
-            // Update the UI for upvote count and status
             setHasUpvoted(!hasUpvoted);
             setVoteCount((prevCount) => (hasUpvoted ? prevCount - 1 : prevCount + 1));
         } catch (err) {
@@ -69,7 +66,6 @@ const BlogCard: React.FC<BlogCardProps> = ({ blog, mode }) => {
         }
     };
 
-    // Handle bookmarking logic
     const handleBookmark = async () => {
         if (!session) {
             signIn();
@@ -85,11 +81,16 @@ const BlogCard: React.FC<BlogCardProps> = ({ blog, mode }) => {
                 throw new Error(errorData.message || "Failed to update bookmark");
             }
 
-            // Toggle the bookmark state in the UI
             setHasBookmarked(!hasBookmarked);
         } catch (err) {
             console.error("Failed to update bookmark", err);
         }
+    };
+
+    // Utility function to truncate Markdown content for preview
+    const truncateMarkdown = (markdown: string, maxLength: number) => {
+        if (markdown.length <= maxLength) return markdown;
+        return markdown.slice(0, maxLength) + "...";
     };
 
     return (
@@ -109,12 +110,14 @@ const BlogCard: React.FC<BlogCardProps> = ({ blog, mode }) => {
                 )}
             </CardHeader>
             <CardContent>
-                <p className={`text-gray-700 ${mode === "short" ? "line-clamp-3" : ""}`}>
-                    {mode === "short" ? content.slice(0, 100) + "..." : content}
-                </p>
+                <ReactMarkdown
+                    className="prose prose-sm sm:prose lg:prose-lg"
+                    remarkPlugins={[remarkGfm]}
+                >
+                    {mode === "short" ? truncateMarkdown(content, 50) : content}
+                </ReactMarkdown>
             </CardContent>
             <CardFooter className="card-footer flex flex-wrap gap-2 lg:gap-4 justify-center sm:justify-start">
-                {/* Upvote Button */}
                 <Button 
                     variant="outline" 
                     size="sm" 
@@ -128,7 +131,6 @@ const BlogCard: React.FC<BlogCardProps> = ({ blog, mode }) => {
                     </span>
                 </Button>
 
-                {/* Bookmark Button */}
                 <Button 
                     variant="outline" 
                     size="sm" 
