@@ -1,30 +1,31 @@
 "use client";
 
+import { ChangeEvent, MouseEvent } from "react"; 
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
-import { Textarea } from "@/app/components/ui/textarea";
 import { Label } from "@/app/components/ui/label";
 import { Appbar } from "../components/Appbar";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 export default function WriteBlogPage() {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
-    const [imageUrl, setImageUrl] = useState(''); // Handle the image URL after upload
-    const [isImageUploading, setIsImageUploading] = useState(false); // Track if image is uploading
+    const [imageUrl, setImageUrl] = useState('');
+    const [isImageUploading, setIsImageUploading] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [activeTab, setActiveTab] = useState("write");
     const { data: session, status } = useSession();
     const router = useRouter();
 
-    // Handle image upload on file input change
-    const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageChange = async (e: ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        setIsImageUploading(true); // Start tracking image upload
-
+        setIsImageUploading(true);
         const formData = new FormData();
         formData.append("file", file);
         formData.append("upload_preset", process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || '');
@@ -35,53 +36,37 @@ export default function WriteBlogPage() {
                 body: formData,
             });
             const data = await res.json();
-
-            if (data.secure_url) {
-                setImageUrl(data.secure_url); // Store uploaded image URL
-            } else {
-                alert("Image upload failed");
-            }
+            setImageUrl(data.secure_url || '');
         } catch (error) {
             console.error("Image upload error:", error);
             alert("Failed to upload image.");
         } finally {
-            setIsImageUploading(false); // Image upload complete
+            setIsImageUploading(false);
         }
     };
 
-    const handleSubmit = async (e: React.MouseEvent) => {
+    const handleSubmit = async (e: MouseEvent<HTMLButtonElement>) => {  
         e.preventDefault();
-
         if (!title || !content) {
             alert("Title and content are required.");
             return;
         }
-
-        if (isImageUploading) {
-            alert("Image is still uploading. Please wait.");
-            return;
-        }
-
-        if (isLoading) return;
+        if (isImageUploading || isLoading) return;
         setIsLoading(true);
 
         try {
             const response = await fetch("/api/write-blog", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ title, content, image: imageUrl }), // Use imageUrl for image
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ title, content, image: imageUrl }),
             });
 
             if (response.ok) {
                 await response.json();
                 router.push('/');
             } else {
-                const error = await response.json();
-                alert(error.message);
+                alert("Failed to publish.");
             }
-
         } catch (error) {
             console.error("POST error:", error);
             alert("An error occurred. Please try again.");
@@ -92,9 +77,7 @@ export default function WriteBlogPage() {
 
     useEffect(() => {
         if (status === "loading") return;
-        if (status === "unauthenticated") {
-            router.push("/auth/signin");
-        }
+        if (status === "unauthenticated") router.push("/auth/signin");
     }, [status, router]);
 
     return (
@@ -103,7 +86,7 @@ export default function WriteBlogPage() {
             {session && (
                 <div className="min-h-screen bg-gray-50">
                     <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                        <h1 className="text-3xl font-bold text-gray-900 mb-6">Create New Post</h1>
+                        <h1 className="text-3xl font-bold text-gray-900 mb-6">Create New Blog</h1>
                         <form className="bg-white shadow-md rounded-lg p-6 space-y-6">
                             <div className="space-y-2">
                                 <Label htmlFor="title">Title</Label>
@@ -111,19 +94,8 @@ export default function WriteBlogPage() {
                                     id="title"
                                     value={title}
                                     onChange={(e) => setTitle(e.target.value)}
-                                    placeholder="Enter your post title"
+                                    placeholder="Enter your blog title"
                                     className="w-full"
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="content">Content</Label>
-                                <Textarea
-                                    id="content"
-                                    value={content}
-                                    onChange={(e) => setContent(e.target.value)}
-                                    placeholder="Write your post content here..."
-                                    className="w-full h-64"
                                 />
                             </div>
 
@@ -138,6 +110,44 @@ export default function WriteBlogPage() {
                                 />
                                 {isImageUploading && <p>Uploading image, please wait...</p>}
                             </div>
+
+                            {/* Tab Navigation */}
+                            <div className="flex border-b border-black-200 mb-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setActiveTab("write")}
+                                    className={`px-4 py-2 ${activeTab === "write" ? "border-b-2 border-black-500 text-black-500" : "text-gray-500"}`}
+                                >
+                                    Write
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setActiveTab("preview")}
+                                    className={`px-4 py-2 ${activeTab === "preview" ? "border-b-2 border-black-500 text-black-500" : "text-gray-500"}`}
+                                >
+                                    Preview
+                                </button>
+                            </div>
+
+                            {/* Content Area based on Active Tab */}
+                            {activeTab === "write" ? (
+                                <div className="space-y-2">
+                                    <Label htmlFor="content">Content (Markdown supported)</Label>
+                                    <textarea
+                                        id="content"
+                                        value={content}
+                                        onChange={(e) => setContent(e.target.value)}
+                                        placeholder="Write your blog content here using Markdown..."
+                                        className="w-full h-64"
+                                    />
+                                </div>
+                            ) : (
+                                <div className="p-6 bg-gray-100 rounded-lg">
+                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                        {content || "*Nothing to preview*"}
+                                    </ReactMarkdown>
+                                </div>
+                            )}
 
                             <div className="flex justify-end space-x-4">
                                 <Button type="button" onClick={handleSubmit} disabled={isLoading || isImageUploading}>
