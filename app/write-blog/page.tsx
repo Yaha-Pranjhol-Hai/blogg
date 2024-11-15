@@ -1,9 +1,8 @@
 "use client";
 
-import { ChangeEvent, MouseEvent } from "react"; 
+import { ChangeEvent, MouseEvent, useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
@@ -20,6 +19,33 @@ export default function WriteBlogPage() {
     const [activeTab, setActiveTab] = useState("write");
     const { data: session, status } = useSession();
     const router = useRouter();
+
+    
+    const handleGenerateImage = async () => {
+        if (!content) {
+            alert("Please enter some content before generating an image.");
+            return;
+        }
+
+        try {
+            const response = await fetch("/api/generateImage", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ prompt: content }),
+            });
+
+            if (response.ok) {
+                const imageBlob = await response.blob();
+                const imageObjectURL = URL.createObjectURL(imageBlob);
+                setImageUrl(imageObjectURL);
+            } else {
+                alert("Failed to generate image.");
+            }
+        } catch (error) {
+            console.error("Error generating image:", error);
+            alert("An error occurred. Please try again.");
+        }
+    };
 
     const handleImageChange = async (e: ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -45,28 +71,25 @@ export default function WriteBlogPage() {
         }
     };
 
-    const handleSubmit = async (e: MouseEvent<HTMLButtonElement>) => {  
+    const handleSubmit = async (e: MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         if (!title || !content) {
             alert("Title and content are required.");
             return;
         }
         if (isImageUploading || isLoading) return;
-        setIsLoading(true);
 
+        setIsLoading(true);
         try {
             const response = await fetch("/api/write-blog", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ title, content, image: imageUrl }),
             });
-
             if (response.ok) {
                 await response.json();
                 router.push('/');
-            } else {
-                alert("Failed to publish.");
-            }
+            } else alert("Failed to publish.");
         } catch (error) {
             console.error("POST error:", error);
             alert("An error occurred. Please try again.");
@@ -111,7 +134,20 @@ export default function WriteBlogPage() {
                                 {isImageUploading && <p>Uploading image, please wait...</p>}
                             </div>
 
-                            {/* Tab Navigation */}
+                            <div className="flex justify-end space-x-4">
+                                <Button type="button" onClick={handleGenerateImage} disabled={!content || isImageUploading}>
+                                    Generate Image
+                                </Button>
+                            </div>
+
+                            {/* Render the generated image if imageUrl is set */}
+                            {imageUrl && (
+                <div className="mt-4">
+                    <h2>Generated Image Preview</h2>
+                    <img src={imageUrl} alt="Generated Preview" className="w-full h-auto mt-2" />
+                </div>
+            )}
+
                             <div className="flex border-b border-black-200 mb-4">
                                 <button
                                     type="button"
@@ -129,7 +165,6 @@ export default function WriteBlogPage() {
                                 </button>
                             </div>
 
-                            {/* Content Area based on Active Tab */}
                             {activeTab === "write" ? (
                                 <div className="space-y-2">
                                     <Label htmlFor="content">Content (Markdown supported)</Label>

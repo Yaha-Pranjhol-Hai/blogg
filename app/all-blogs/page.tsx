@@ -3,12 +3,13 @@
 import useSWR from "swr";
 import BlogCard from "../components/BlogCard";
 import { Appbar } from "../components/Appbar";
+import { BlogCardSkeleton } from "../components/BlogCardSkeleton";
 import { Blog } from "@/types/BlogTypes";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function AllBlogs() {
-    const { data: blogs, mutate, error } = useSWR<Blog[]>('/api/all-blogs', fetcher);
+    const { data: blogs, mutate, error, isLoading } = useSWR<Blog[]>('/api/all-blogs', fetcher);
 
     const handleUpvote = async (blogId: number) => {
         try {
@@ -26,18 +27,23 @@ export default function AllBlogs() {
     };
 
     if (error) return <div>Failed to load blogs: {error.message}</div>;
-    if (!blogs) return <div>Loading...</div>;
 
     return (
         <div>
             <Appbar isBlogPage={true} />
             {/* Masonry Layout */}
             <div className="masonry p-4">
-                {Array.isArray(blogs) && blogs.map((blog) => (
-                    <div key={blog.id} className="masonry-item">
-                        <BlogCard mode="short" blog={blog} onUpvote={handleUpvote} />
-                    </div>
-                ))}
+                {isLoading || !blogs
+                    ? Array.from({ length: 6 }, (_, i) => (
+                        <div key={i} className="masonry-item">
+                            <BlogCardSkeleton />
+                        </div>
+                    ))
+                    : blogs.map((blog) => (
+                        <div key={blog.id} className="masonry-item">
+                            <BlogCard mode="short" blog={blog} onUpvote={handleUpvote} />
+                        </div>
+                    ))}
             </div>
         </div>
     );
