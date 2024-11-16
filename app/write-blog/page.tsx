@@ -1,26 +1,60 @@
 "use client";
 
-import { ChangeEvent, MouseEvent } from "react"; 
+import { ChangeEvent, MouseEvent, useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
 import { Appbar } from "../components/Appbar";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { BounceLoader } from "react-spinners"; 
 
 export default function WriteBlogPage() {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [imageUrl, setImageUrl] = useState('');
     const [isImageUploading, setIsImageUploading] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
+    const [isImageGenerating, setIsImageGenerating] = useState(false); 
+    const [isPublishing, setIsPublishing] = useState(false);
     const [activeTab, setActiveTab] = useState("write");
     const { data: session, status } = useSession();
     const router = useRouter();
 
+    // Handle Image Generation
+    const handleGenerateImage = async () => {
+        if (!content) {
+            alert("Please enter some content before generating an image.");
+            return;
+        }
+
+        if (isImageUploading || isImageGenerating || isPublishing) return;
+
+        setIsImageGenerating(true);
+
+        try {
+            const response = await fetch("/api/generateImage", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ prompt: content }),
+            });
+
+            if (response.ok) {
+                const { imageUrl } = await response.json();
+                setImageUrl(imageUrl);
+            } else {
+                alert("Failed to generate image.");
+            }
+        } catch (error) {
+            console.error("Error generating image:", error);
+            alert("An error occurred. Please try again.");
+        } finally {
+            setIsImageGenerating(false);
+        }
+    };
+
+    // Handle Image Upload
     const handleImageChange = async (e: ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -45,14 +79,16 @@ export default function WriteBlogPage() {
         }
     };
 
-    const handleSubmit = async (e: MouseEvent<HTMLButtonElement>) => {  
+    // Handle Submit (Publish Blog)
+    const handleSubmit = async (e: MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         if (!title || !content) {
             alert("Title and content are required.");
             return;
         }
-        if (isImageUploading || isLoading) return;
-        setIsLoading(true);
+        if (isImageUploading || isImageGenerating || isPublishing) return; 
+
+        setIsPublishing(true);
 
         try {
             const response = await fetch("/api/write-blog", {
@@ -60,18 +96,15 @@ export default function WriteBlogPage() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ title, content, image: imageUrl }),
             });
-
             if (response.ok) {
                 await response.json();
                 router.push('/');
-            } else {
-                alert("Failed to publish.");
-            }
+            } else alert("Failed to publish.");
         } catch (error) {
             console.error("POST error:", error);
             alert("An error occurred. Please try again.");
         } finally {
-            setIsLoading(false);
+            setIsPublishing(false); 
         }
     };
 
@@ -80,8 +113,11 @@ export default function WriteBlogPage() {
         if (status === "unauthenticated") router.push("/auth/signin");
     }, [status, router]);
 
+    // Check if any of the operations is in progress
+    const isLoading = isImageUploading || isImageGenerating || isPublishing;
+
     return (
-        <div className="min-h-screen flex flex-col">
+        <div className="min-h-screen flex flex-col relative">
             <Appbar isBlogPage={true} />
             {session && (
                 <div className="min-h-screen bg-gray-50">
@@ -111,7 +147,20 @@ export default function WriteBlogPage() {
                                 {isImageUploading && <p>Uploading image, please wait...</p>}
                             </div>
 
-                            {/* Tab Navigation */}
+                            <div className="flex justify-end space-x-4">
+                                <Button type="button" onClick={handleGenerateImage} disabled={!content || isImageUploading || isImageGenerating}>
+                                    Generate Image
+                                </Button>
+                            </div>
+
+                            {/* Render the generated image if imageUrl is set */}
+                            {imageUrl && (
+                                <div className="mt-4">
+                                    <h2>Generated Image Preview</h2>
+                                    <img src={imageUrl} alt="Generated Preview" className="w-full h-auto mt-2" />
+                                </div>
+                            )}
+
                             <div className="flex border-b border-black-200 mb-4">
                                 <button
                                     type="button"
@@ -129,7 +178,6 @@ export default function WriteBlogPage() {
                                 </button>
                             </div>
 
-                            {/* Content Area based on Active Tab */}
                             {activeTab === "write" ? (
                                 <div className="space-y-2">
                                     <Label htmlFor="content">Content (Markdown supported)</Label>
@@ -150,12 +198,18 @@ export default function WriteBlogPage() {
                             )}
 
                             <div className="flex justify-end space-x-4">
-                                <Button type="button" onClick={handleSubmit} disabled={isLoading || isImageUploading}>
-                                    {isLoading ? "Publishing..." : "Publish"}
+                                <Button type="button" onClick={handleSubmit} disabled={isPublishing || isImageUploading || isImageGenerating}>
+                                    Publish
                                 </Button>
                             </div>
                         </form>
                     </main>
+                </div>
+            )}
+
+            {isLoading && (
+                <div className="absolute inset-0 flex justify-center items-center bg-black bg-opacity-50 z-10">
+                    <BounceLoader size={60} color="#000000" />
                 </div>
             )}
         </div>

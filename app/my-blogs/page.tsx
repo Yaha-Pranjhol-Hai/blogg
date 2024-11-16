@@ -5,6 +5,7 @@ import { getSession, signIn } from "next-auth/react";
 import { Post } from "@prisma/client";
 import { Appbar } from "../components/Appbar";
 import MyBlogCard from "../components/MyBlogsCard";
+import MyBlogCardSkeleton from "../components/MyBlogCardSkeleton";
 
 const MyBlogsPage = () => {
   const [blogs, setBlogs] = useState<Post[]>([]);
@@ -39,7 +40,22 @@ const MyBlogsPage = () => {
     fetchBlogs();
   }, []);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return (
+    <div>
+      <Appbar />
+      <h2 className="text-2xl text-center my-5 font-bold mb-6">My Blogs</h2>
+      <div className="masonry p-4">
+        {Array(6)
+          .fill(null)
+          .map((_, index) => (
+            <div key={index} className="masonry-item">
+              <MyBlogCardSkeleton />
+            </div>
+          ))}
+      </div>
+    </div>
+  );
+  
   if (error) return <div>{error}</div>;
 
   return (
@@ -50,13 +66,12 @@ const MyBlogsPage = () => {
         <p>No blogs found.</p>
       ) : (
         <div className="masonry p-4">
-  {blogs.map((blog) => (
-    <div key={blog.id} className="masonry-item">
-      <MyBlogCard mode="short" blog={blog} />
-    </div>
-  ))}
-</div>
-
+          {blogs.map((blog) => (
+            <div key={blog.id} className="masonry-item">
+              <MyBlogCard mode="short" blog={blog} />
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
